@@ -1,19 +1,13 @@
-mod r#struct;
+mod struct_game;
+mod create_message;
 
 use std::io::{self, Write};
 use std::net::TcpStream;
 use serde::{Serialize, Deserialize};
-
-#[derive(Serialize, Deserialize, Debug)]
-struct WelcomeMessage {
-    number: i32,
-
-}
+use crate::struct_game::{Welcome, WelcomeMessage};
+use crate::create_message::welcome_message;
 
 fn main() -> io::Result<()> {
-    let message = WelcomeMessage{  number : 1 };
-    let serialized = serde_json::to_string(&message).unwrap();
-    println!("serialized = {}", serialized);
     // Establish a TCP connection with the farend
     let mut stream = TcpStream::connect("127.0.0.1:7878")?;
 
@@ -21,13 +15,10 @@ fn main() -> io::Result<()> {
     // Buffer the bytes
     let data = b"Hello";
     let bytes_written = stream.write(data)?;
-    println!(" test {}",bytes_written);
-    if bytes_written < data.len() {
-        return Err(io::Error::new(
-            io::ErrorKind::Interrupted,
-            format!("Sent {}/{} bytes", bytes_written, data.len()),
-        ));
-    }
+    println!(" bytes_writtent {}",bytes_written);
+
+    //let bytes_written = stream.write(welcome_message(1).as_ref());
+
     // Tell TCP to send the buffered data on the wire
     stream.flush()?;
 
