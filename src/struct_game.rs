@@ -22,3 +22,9 @@ pub struct SubscribeMessage{
 pub struct Subscribe{
     pub(crate) Subscribe : SubscribeMessage,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub(crate) enum Message {
+    Hello,
+
+}

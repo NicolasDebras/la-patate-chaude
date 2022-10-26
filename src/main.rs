@@ -1,27 +1,29 @@
-mod struct_game;
 mod create_message;
 
-use std::io::{self, Write};
+
+use std::io::{Read, Write};
 use std::net::TcpStream;
-use serde::{Serialize, Deserialize};
-use crate::struct_game::{Welcome, WelcomeMessage};
-use crate::create_message::welcome_message;
+use crate::create_message::Message;
 
-fn main() -> io::Result<()> {
-    // Establish a TCP connection with the farend
-    let mut stream = TcpStream::connect("127.0.0.1:7878")?;
+fn main() {
+
+    let mut stream = TcpStream::connect("localhost:7878").expect("connection failed");
+
+    send_message(&stream, create_message::Message::Hello);
+    let mut text = String::new();
+    stream.read_to_string(&mut text).expect("read failed");
+    println!("got '{}'", text);
 
 
-    // Buffer the bytes
-    let data = b"Hello";
-    let bytes_written = stream.write(data)?;
-    println!(" bytes_writtent {}",bytes_written);
 
-    //let bytes_written = stream.write(welcome_message(1).as_ref());
 
-    // Tell TCP to send the buffered data on the wire
-    stream.flush()?;
 
-    Ok(())
+    }
+
+pub fn send_message(mut stream: &TcpStream, message: Message) {
+    let serialized = serde_json::to_string(&message).expect("failed to serialized object");
+    let serialized_size = serialized.len() as u32;
+
+    stream.write_all(&serialized_size.to_be_bytes()).expect("failed to send message size");
+    stream.write_all(&serialized.as_bytes()).expect("failed to send message");
 }
-
