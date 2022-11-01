@@ -1,8 +1,9 @@
 use std::io::{ Read, Write};
 use std::net::TcpStream;
+use serde::{Deserialize, Serialize};
 
 
-use crate::create_message::Message;
+use crate::create_message::{Message, Welcome};
 
 mod create_message;
 
@@ -14,10 +15,37 @@ pub fn send_message(mut stream: &TcpStream, message: Message) {
     stream.write_all(&serialized.as_bytes()).expect("failed to send message");
 }
 
+
+
+pub fn on_welcome(stream: &TcpStream, welcome: Welcome) {
+    println!("welcome: {welcome:?}");
+
+}
+
+
 fn main_loop(mut stream: &TcpStream) {
     let mut buf = [0; 4];
 
     send_message(stream, Message::Hello);
+    match stream.read_exact(&mut buf) {
+        Ok(_) => {}
+        Err(_) => {
+            println!("help");
+        }
+    }
+    let message_size = u32::from_be_bytes(buf);
+
+    let mut message_buf = vec![0; message_size as usize];
+    stream
+        .read_exact(&mut message_buf)
+        .expect("failed to read message");
+
+    let record = buffer_to_object(&mut message_buf);
+    match record {
+        Message::Hello => {}
+        Message::Welcome(welcome) => on_welcome(stream, welcome),
+        _ => {}
+    }
 
 
 }
