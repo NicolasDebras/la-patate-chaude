@@ -10,6 +10,7 @@ mod create_message;
 struct LeaderBoard {
     pub players: Vec<PublicPlayer>,
 }
+
 pub fn send_message(mut stream: &TcpStream, message: Message) {
     let serialized = serde_json::to_string(&message).expect("failed to serialized object");
     let serialized_size = serialized.len() as u32;
@@ -20,8 +21,7 @@ pub fn send_message(mut stream: &TcpStream, message: Message) {
 
 
 
-pub fn on_welcome_message(stream: &TcpStream, welcome: Welcome) {
-    let name = String::from("aristide");
+pub fn on_welcome_message(stream: &TcpStream, welcome: Welcome, name: String) {
     println!("welcome: {welcome:?}");
     let message_subscribe = Subscribe{ name: name.clone()};
     send_message(stream, Message::Subscribe(message_subscribe));
@@ -38,7 +38,7 @@ pub fn on_leader_board_message(leader_board: &Vec<PublicPlayer>){
 }
 
 
-fn loop_message(mut stream: &TcpStream) {
+fn loop_message(mut stream: &TcpStream, name: String) {
     let mut buf = [0; 4];
     send_message(stream, Message::Hello);
     loop {
@@ -58,7 +58,7 @@ fn loop_message(mut stream: &TcpStream) {
         let record = buffer_to_object(&mut message_buf);
         match record {
             Message::Hello => {}
-            Message::Welcome(welcome) => on_welcome_message(stream, welcome),
+            Message::Welcome(welcome) => on_welcome_message(stream, welcome, name.clone()),
             Message::Subscribe(_) => {}
             Message::SubscribeResult(subscribe_result) => on_subscribe_result_message(subscribe_result),
             Message::PublicLeaderBoard(leader_board) => {
@@ -83,13 +83,11 @@ fn buffer_to_object(message_buf: &mut Vec<u8>) -> Message {
 
 fn main() {
     let stream = TcpStream::connect("localhost:7878");
-    for argument in env::args() {
-        println!("{argument}");
-    }
-
+    let args: Vec<String> = env::args().collect();
+    let name = &args[1];
     match stream {
         Ok(stream) => {
-            loop_message(&stream);
+            loop_message(&stream, name.clone());
         }
         Err(err) => panic!("Cannot connect: {err}"),
     }
