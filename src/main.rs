@@ -1,12 +1,15 @@
-use std::io::{ Read, Write};
+use std::env;
+use std::io::{Read, Write};
 use std::net::TcpStream;
-use serde::{Deserialize, Serialize};
+use std::string::String;
 
-
-use crate::create_message::{Message, Welcome};
+use crate::create_message::{Message, PublicPlayer, Subscribe, SubscribeResult, Welcome};
 
 mod create_message;
 
+struct LeaderBoard {
+    pub players: Vec<PublicPlayer>,
+}
 pub fn send_message(mut stream: &TcpStream, message: Message) {
     let serialized = serde_json::to_string(&message).expect("failed to serialized object");
     let serialized_size = serialized.len() as u32;
@@ -17,37 +20,54 @@ pub fn send_message(mut stream: &TcpStream, message: Message) {
 
 
 
-pub fn on_welcome(stream: &TcpStream, welcome: Welcome) {
+pub fn on_welcome_message(stream: &TcpStream, welcome: Welcome) {
+    let name = String::from("aristide");
     println!("welcome: {welcome:?}");
+    let message_subscribe = Subscribe{ name: name.clone()};
+    send_message(stream, Message::Subscribe(message_subscribe));
+}
 
+pub fn on_subscribe_result_message(subscribe_result: SubscribeResult){
+    println!("subscribe_result: {subscribe_result:?}");
 }
 
 
-fn main_loop(mut stream: &TcpStream) {
-    let mut buf = [0; 4];
+pub fn on_leader_board_message(leader_board: &Vec<PublicPlayer>){
+    println!("hello");
+    println!("learder_board: {leader_board:?}");
+}
 
+
+fn loop_message(mut stream: &TcpStream) {
+    let mut buf = [0; 4];
     send_message(stream, Message::Hello);
-    match stream.read_exact(&mut buf) {
-        Ok(_) => {}
-        Err(_) => {
-            println!("help");
+    loop {
+        match stream.read_exact(&mut buf) {
+            Ok(_) => {}
+            Err(_) => {
+                println!("help");
+            }
+        }
+        let message_size = u32::from_be_bytes(buf);
+
+        let mut message_buf = vec![0; message_size as usize];
+        stream
+            .read_exact(&mut message_buf)
+            .expect("failed to read message");
+
+        let record = buffer_to_object(&mut message_buf);
+        match record {
+            Message::Hello => {}
+            Message::Welcome(welcome) => on_welcome_message(stream, welcome),
+            Message::Subscribe(_) => {}
+            Message::SubscribeResult(subscribe_result) => on_subscribe_result_message(subscribe_result),
+            Message::PublicLeaderBoard(leader_board) => {
+                let leader_board = LeaderBoard{ players : leader_board};
+                on_leader_board_message(&leader_board.players);
+            }
+            _ => {}
         }
     }
-    let message_size = u32::from_be_bytes(buf);
-
-    let mut message_buf = vec![0; message_size as usize];
-    stream
-        .read_exact(&mut message_buf)
-        .expect("failed to read message");
-
-    let record = buffer_to_object(&mut message_buf);
-    match record {
-        Message::Hello => {}
-        Message::Welcome(welcome) => on_welcome(stream, welcome),
-        _ => {}
-    }
-
-
 }
 
 fn buffer_to_object(message_buf: &mut Vec<u8>) -> Message {
@@ -59,13 +79,17 @@ fn buffer_to_object(message_buf: &mut Vec<u8>) -> Message {
     record
 }
 
+
+
 fn main() {
     let stream = TcpStream::connect("localhost:7878");
-
+    for argument in env::args() {
+        println!("{argument}");
+    }
 
     match stream {
         Ok(stream) => {
-            main_loop(&stream);
+            loop_message(&stream);
         }
         Err(err) => panic!("Cannot connect: {err}"),
     }
