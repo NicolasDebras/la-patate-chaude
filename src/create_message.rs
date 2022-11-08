@@ -66,8 +66,26 @@ pub struct EndOfGame {
     pub leader_board: Vec<PublicPlayer>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MD5HashCashInput {
+    // complexity in bits
+    pub complexity: u32,
+    // message to sign
+    pub message: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MD5HashCashOutput {
+    // Seed used to solve the challenge
+    pub seed: u64,
+    // hashcode found using seed + message
+    pub hashcode: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Challenge {
+    MD5HashCash(),
+    RecoverSecret(),
 }
 
 #[derive(Debug, Serialize, Deserialize)]

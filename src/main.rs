@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::string::String;
 
-use crate::create_message::{Message, PublicPlayer, Subscribe, SubscribeResult, Welcome};
+use crate::create_message::{Challenge, EndOfGame, Message, PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome};
 
 mod create_message;
 
@@ -17,6 +17,14 @@ pub fn send_message(mut stream: &TcpStream, message: Message) {
 
     stream.write_all(&serialized_size.to_be_bytes()).expect("failed to send message size");
     stream.write_all(&serialized.as_bytes()).expect("failed to send message");
+}
+
+fn  on_challenge_message(stream: &TcpStream, challenge: Challenge){
+    println!("hello2");
+    match challenge {
+        Challenge::MD5HashCash() => println!("hello"),
+        Challenge::RecoverSecret() => println!("test"),
+    }
 }
 
 
@@ -37,11 +45,20 @@ pub fn on_leader_board_message(leader_board: &Vec<PublicPlayer>){
     println!("learder_board: {leader_board:?}");
 }
 
+fn on_round_summary(stream: &TcpStream, round: RoundSummary){
+    println!("summary: {round:?}");
 
+}
+
+fn finish_game(end: EndOfGame){
+    println!("finish");
+    println!("endOfGame: {end:?}");
+}
 fn loop_message(mut stream: &TcpStream, name: String) {
     let mut buf = [0; 4];
     send_message(stream, Message::Hello);
     loop {
+        println!("helop2");
         match stream.read_exact(&mut buf) {
             Ok(_) => {}
             Err(_) => {
@@ -65,7 +82,19 @@ fn loop_message(mut stream: &TcpStream, name: String) {
                 let leader_board = LeaderBoard{ players : leader_board};
                 on_leader_board_message(&leader_board.players);
             }
-            _ => {}
+            Message::Challenge(challenge) => {
+                on_challenge_message(stream, challenge);
+            }
+            Message::RoundSummary(round) => {
+                on_round_summary(stream, round);
+            }
+            Message::EndOfGame(end) => {
+                finish_game(end)
+            }
+            _ => {
+                println!("help")
+            }
+
         }
     }
 }
