@@ -82,14 +82,16 @@ pub struct MD5HashCashOutput {
     pub hashcode: String,
 }
 
+
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Challenge {
-    MD5HashCash(),
+    MD5HashCash(MD5HashCashInput),
     RecoverSecret(),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ChallengeAnswer {
+    MD5HashCash(MD5HashCashOutput),
 }
 
 
@@ -104,4 +106,5 @@ pub enum Message {
     ChallengeResult(ChallengeResult),
     RoundSummary(RoundSummary),
     EndOfGame(EndOfGame),
+    ChallengeValue(ChallengeValue),
 }

@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::string::String;
 
-use crate::create_message::{Challenge, EndOfGame, Message, PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome};
+use crate::create_message::{Challenge, ChallengeAnswer, ChallengeValue, EndOfGame, MD5HashCashInput, MD5HashCashOutput, Message, PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome};
 
 mod create_message;
 
@@ -19,10 +19,21 @@ pub fn send_message(mut stream: &TcpStream, message: Message) {
     stream.write_all(&serialized.as_bytes()).expect("failed to send message");
 }
 
+fn md5_challenge_resolve(input: MD5HashCashInput) -> MD5HashCashOutput{
+    let result_complexity : String = input.complexity.to_string();
+    let result_hashcode : String = input.message;
+    println!("input.complexity = {result_complexity:?}");
+    println!("input.complexity = {result_hashcode:?}");
+    MD5HashCashOutput{seed : 00, hashcode: String::from("hello")}
+}
+
 fn  on_challenge_message(stream: &TcpStream, challenge: Challenge){
     println!("hello2");
     match challenge {
-        Challenge::MD5HashCash() => println!("hello"),
+        Challenge::MD5HashCash(input) => {
+            println!("run the MD5 Challenge");
+            ChallengeAnswer::MD5HashCash(md5_challenge_resolve(input ));
+        },
         Challenge::RecoverSecret() => println!("test"),
     }
 }
@@ -54,11 +65,18 @@ fn finish_game(end: EndOfGame){
     println!("finish");
     println!("endOfGame: {end:?}");
 }
+
+fn on_challenge_value(challenge_value: ChallengeValue){
+    match challenge_value {
+        ChallengeValue::Timeout => println!("Timeout finish : {challenge_value:?}"),
+        ChallengeValue::Unreachable => println!("Unreachable : {challenge_value:?}"),
+        _ => {println!("Other message")}
+    }
+}
 fn loop_message(mut stream: &TcpStream, name: String) {
     let mut buf = [0; 4];
     send_message(stream, Message::Hello);
     loop {
-        println!("helop2");
         match stream.read_exact(&mut buf) {
             Ok(_) => {}
             Err(_) => {
@@ -89,7 +107,11 @@ fn loop_message(mut stream: &TcpStream, name: String) {
                 on_round_summary(stream, round);
             }
             Message::EndOfGame(end) => {
-                finish_game(end)
+                finish_game(end);
+                break;
+            }
+            Message::ChallengeValue(challengeValue) => {
+                on_challenge_value(challengeValue);
             }
             _ => {
                 println!("help")
