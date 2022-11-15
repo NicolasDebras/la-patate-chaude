@@ -1,3 +1,4 @@
+use std::ffi::CString;
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -81,17 +82,28 @@ pub struct MD5HashCashOutput {
     // hashcode found using seed + message
     pub hashcode: String,
 }
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ChallengeTime {
+    message: String,
+}
+
 
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Challenge {
     MD5HashCash(MD5HashCashInput),
     RecoverSecret(),
+    ChallengeTimeout(ChallengeTime),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ChallengeAnswer {
     MD5HashCash(MD5HashCashOutput),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct   ChallengeTimeout{
+    message: String,
 }
 
 
@@ -106,5 +118,5 @@ pub enum Message {
     ChallengeResult(ChallengeResult),
     RoundSummary(RoundSummary),
     EndOfGame(EndOfGame),
-    ChallengeValue(ChallengeValue),
+    ChallengeTimeout(ChallengeTimeout),
 }
