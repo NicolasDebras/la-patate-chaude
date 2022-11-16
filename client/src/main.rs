@@ -3,9 +3,10 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::string::String;
 
-use crate::create_message::{Challenge, ChallengeAnswer, ChallengeValue, EndOfGame, MD5HashCashInput, MD5HashCashOutput, Message, PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome};
-
-mod create_message;
+use lib_common::message::{
+    Challenge, ChallengeAnswer, ChallengeResult, EndOfGame, Message, PublicPlayer, RoundSummary, SubscribeResult,
+    ChallengeValue, MD5HashCashInput,  MD5HashCashOutput, Welcome, Subscribe,
+};
 
 struct LeaderBoard {
     pub players: Vec<PublicPlayer>,
@@ -68,7 +69,7 @@ pub fn on_subscribe_result_message(subscribe_result: SubscribeResult) -> u32{
 
 
 pub fn on_leader_board_message(leader_board: &Vec<PublicPlayer>){
-    println!("learder_board: {leader_board:?}");
+    println!("leader_board: {leader_board:?}");
 }
 
 fn on_round_summary(stream: &TcpStream, round: RoundSummary){
@@ -122,8 +123,8 @@ fn loop_message(mut stream: &TcpStream, name: String) {
             Message::Welcome(welcome) => on_welcome_message(stream, welcome, name.clone()),
             Message::Subscribe(_) => {}
             Message::SubscribeResult(subscribe_result) => {
-                let codeReturn = on_subscribe_result_message(subscribe_result);
-                if codeReturn == 1 {
+                let code_return = on_subscribe_result_message(subscribe_result);
+                if code_return == 1 {
                     println!("Resend the other  name of user ${name} ");
                     break;
                 }
@@ -172,6 +173,6 @@ fn main() {
         Ok(stream) => {
             loop_message(&stream, name.clone());
         }
-        Err(err) => panic!("Cannot connect: {err}"),
+        Err(err) => panic!("Cannot connect: {}", err),
     }
 }
