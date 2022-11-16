@@ -4,8 +4,8 @@ use std::net::TcpStream;
 use std::string::String;
 
 use lib_common::message::{
-    Challenge, ChallengeAnswer, ChallengeResult, EndOfGame, Message, PublicPlayer, RoundSummary, SubscribeResult,
-    ChallengeValue, MD5HashCashInput,  MD5HashCashOutput, Welcome, Subscribe,
+    Challenge, ChallengeAnswer, ChallengeResult, ChallengeValue, EndOfGame, MD5HashCashInput, MD5HashCashOutput, Message,
+    PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome,
 };
 
 struct LeaderBoard {
@@ -20,21 +20,21 @@ pub fn send_message(mut stream: &TcpStream, message: Message) {
     stream.write_all(&serialized.as_bytes()).expect("failed to send message");
 }
 
-fn md5_challenge_resolve(input: MD5HashCashInput) -> MD5HashCashOutput{
-    let result_complexity : String = input.complexity.to_string();
-    let result_hashcode : String = input.message;
+fn md5_challenge_resolve(input: MD5HashCashInput) -> MD5HashCashOutput {
+    let result_complexity: String = input.complexity.to_string();
+    let result_hashcode: String = input.message;
     println!("input.complexity = {result_complexity:?}");
     println!("input.complexity = {result_hashcode:?}");
-    MD5HashCashOutput{seed : 00, hashcode: String::from("hello")}
+    MD5HashCashOutput { seed: 00, hashcode: String::from("hello") }
 }
 
-fn  on_challenge_message(stream: &TcpStream, challenge: Challenge){
+fn on_challenge_message(stream: &TcpStream, challenge: Challenge) {
     println!("hello2");
     match challenge {
         Challenge::MD5HashCash(input) => {
             println!("run the MD5 Challenge");
-            ChallengeAnswer::MD5HashCash(md5_challenge_resolve(input ));
-        },
+            ChallengeAnswer::MD5HashCash(md5_challenge_resolve(input));
+        }
         Challenge::ChallengeTimeout(input) => {
             println!("test= {input:?}");
             println!("test 129");
@@ -44,15 +44,13 @@ fn  on_challenge_message(stream: &TcpStream, challenge: Challenge){
 }
 
 
-
 pub fn on_welcome_message(stream: &TcpStream, welcome: Welcome, name: String) {
     println!("welcome: {welcome:?}");
-    let message_subscribe = Subscribe{ name: name.clone()};
+    let message_subscribe = Subscribe { name: name.clone() };
     send_message(stream, Message::Subscribe(message_subscribe));
 }
 
-pub fn on_subscribe_result_message(subscribe_result: SubscribeResult) -> u32{
-
+pub fn on_subscribe_result_message(subscribe_result: SubscribeResult) -> u32 {
     return match subscribe_result {
         SubscribeResult::Ok => {
             println!("subscribe_result: {subscribe_result:?}");
@@ -64,40 +62,39 @@ pub fn on_subscribe_result_message(subscribe_result: SubscribeResult) -> u32{
             println!("Not good");
             1
         }
-    }
+    };
 }
 
 
-pub fn on_leader_board_message(leader_board: &Vec<PublicPlayer>){
+pub fn on_leader_board_message(leader_board: &Vec<PublicPlayer>) {
     println!("leader_board: {leader_board:?}");
 }
 
-fn on_round_summary(stream: &TcpStream, round: RoundSummary){
+fn on_round_summary(stream: &TcpStream, round: RoundSummary) {
     let name = round.challenge.to_string();
     println!("summary: {name:?}");
     match &round.chain[0].value {
         ChallengeValue::Timeout => println!("Timeout"),
         ChallengeValue::Unreachable => println!("Unreachable"),
-        ChallengeValue::Ok  { used_time, next_target }=>  {
+        ChallengeValue::Ok { used_time, next_target } => {
             println!("Ok");
         }
-        ChallengeValue::BadResult  { used_time, next_target }=> {
+        ChallengeValue::BadResult { used_time, next_target } => {
             println!("Bad Result");
         }
     }
-
 }
 
-fn finish_game(end: EndOfGame){
+fn finish_game(end: EndOfGame) {
     println!("finish");
     println!("endOfGame: {end:?}");
 }
 
-fn on_challenge_value(challenge_value: ChallengeValue){
+fn on_challenge_value(challenge_value: ChallengeValue) {
     match challenge_value {
         ChallengeValue::Timeout => println!("Timeout finish : {challenge_value:?}"),
         ChallengeValue::Unreachable => println!("Unreachable : {challenge_value:?}"),
-        _ => {println!("Other message")}
+        _ => { println!("Other message") }
     }
 }
 
@@ -128,15 +125,16 @@ fn loop_message(mut stream: &TcpStream, name: String) {
                     println!("Resend the other  name of user ${name} ");
                     break;
                 }
-            },
+            }
             Message::PublicLeaderBoard(leader_board) => {
-                let leader_board = LeaderBoard{ players : leader_board};
+                let leader_board = LeaderBoard { players: leader_board };
                 on_leader_board_message(&leader_board.players);
             }
             Message::Challenge(challenge) => {
                 on_challenge_message(stream, challenge);
             }
             Message::RoundSummary(round) => {
+                println!("roundSummary");
                 on_round_summary(stream, round);
             }
             Message::EndOfGame(end) => {
@@ -164,11 +162,18 @@ fn buffer_to_object(message_buf: &mut Vec<u8>) -> Message {
 }
 
 
-
 fn main() {
-    let stream = TcpStream::connect("localhost:7878");
     let args: Vec<String> = env::args().collect();
-    let name = &args[1];
+    let ip_address = String::from(&args[2]);
+    let name = String::from(&args[1]);
+    let mut address;
+    if args.len() == 4 {
+        let port = String::from(&args[3]);
+        address = ip_address + ":" + &port;
+    } else {
+        address = ip_address + ":7878";
+    }
+    let stream = TcpStream::connect(address);
     match stream {
         Ok(stream) => {
             loop_message(&stream, name.clone());
