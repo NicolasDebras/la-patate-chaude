@@ -33,7 +33,8 @@ fn on_challenge_message(stream: &TcpStream, challenge: Challenge) {
     match challenge {
         Challenge::MD5HashCash(input) => {
             println!("run the MD5 Challenge");
-            ChallengeAnswer::MD5HashCash(md5_challenge_resolve(input));
+            let challenge_answer = ChallengeAnswer::MD5HashCash(md5_challenge_resolve(input));
+            on_message_challenge_answer(stream, challenge_answer );
         }
         Challenge::ChallengeTimeout(input) => {
             println!("test= {input:?}");
@@ -43,6 +44,11 @@ fn on_challenge_message(stream: &TcpStream, challenge: Challenge) {
     }
 }
 
+fn on_message_challenge_answer(stream: &TcpStream, challenge_answer: ChallengeAnswer ){
+    let challenge_result = ChallengeResult{ answer : challenge_answer , next_target: String::from("second message") };
+    let message = Message::ChallengeResult(challenge_result);
+    send_message(stream, message);
+}
 
 pub fn on_welcome_message(stream: &TcpStream, welcome: Welcome, name: String) {
     println!("welcome: {welcome:?}");
@@ -90,13 +96,7 @@ fn finish_game(end: EndOfGame) {
     println!("endOfGame: {end:?}");
 }
 
-fn on_challenge_value(challenge_value: ChallengeValue) {
-    match challenge_value {
-        ChallengeValue::Timeout => println!("Timeout finish : {challenge_value:?}"),
-        ChallengeValue::Unreachable => println!("Unreachable : {challenge_value:?}"),
-        _ => { println!("Other message") }
-    }
-}
+
 
 fn loop_message(mut stream: &TcpStream, name: String) {
     let mut buf = [0; 4];

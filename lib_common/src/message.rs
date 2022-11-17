@@ -108,6 +108,11 @@ pub struct   ChallengeTimeout{
 
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct PublicLeaderBoard{
+    pub players: Vec<PublicPlayer>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Message {
     Hello,
     Welcome(Welcome),
