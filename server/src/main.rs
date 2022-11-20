@@ -11,7 +11,16 @@ use lib_common::message::{
 
 
 
+fn on_message_challenge_result(stream: &TcpStream, challenge_result: ChallengeResult, name_game: String){
+    println!("{challenge_result:?}");
+    //let round = RoundSummary{};
+    //send_message(stream, Message::RoundSummary())
+}
 
+fn on_message_end_of_game(stream: &TcpStream, leader_board: Vec<PublicPlayer>){
+    let result_finish = EndOfGame{ leader_board };
+    send_message(stream, Message::EndOfGame(result_finish));
+}
 fn loop_message(mut stream: &TcpStream, game_name: &String, mut players_vec: Vec<PublicPlayer>){
     let mut buf = [0; 4];
     loop {
@@ -43,12 +52,13 @@ fn loop_message(mut stream: &TcpStream, game_name: &String, mut players_vec: Vec
             }
             Message::SubscribeResult(SubscribeResult) => println!("Subscribe"),
             Message::Challenge(Challenge) => println!("Challenge"),
-            Message::ChallengeResult(ChallengeResult) => {
-                println!("{ChallengeResult:?}")
+            Message::ChallengeResult(challenge_result) => {
+                println!("{ChallengeResult:?}");
+                on_message_challenge_result(stream, challenge_result);
             }
             Message::RoundSummary(RoundSummary) => println!("Six"),
             Message::EndOfGame(EndOfGame) => println!("Sept"),
-            Message::ChallengeTimeout(ChallengeTimeout) => println!("Huit"),
+            Message::ChallengeTimeout(ChallengeTimeout) => println!("ChallengeTimeout"),
             _ => todo!(),
         }
     }

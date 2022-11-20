@@ -3,18 +3,6 @@
 version = 3
 
 [[package]]
-name = "Test_Connection"
-version = "0.0.1"
-dependencies = [
- "byteorder",
- "lib_common",
- "md5",
- "rand",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "byteorder"
 version = "1.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -25,6 +13,18 @@ name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
+name = "client"
+version = "0.0.1"
+dependencies = [
+ "byteorder",
+ "lib_common",
+ "md5",
+ "rand",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "getrandom"
