@@ -16,6 +16,8 @@ struct InfoGame {
 pub fn send_message(mut stream: &TcpStream, message: Message) {
     let serialized = serde_json::to_string(&message).expect("failed to serialized object");
     let serialized_size = serialized.len() as u32;
+    println!("{}", serialized);
+    println!("{}", serialized_size);
 
     stream.write_all(&serialized_size.to_be_bytes()).expect("failed to send message size");
     stream.write_all(&serialized.as_bytes()).expect("failed to send message");
@@ -75,6 +77,8 @@ pub fn on_subscribe_result_message(subscribe_result: SubscribeResult) -> u32 {
 
 pub fn on_leader_board_message(leader_board: &Vec<PublicPlayer>) {
     println!("leader_board: {leader_board:?}");
+    //on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info:&mut InfoGame)
+
 }
 
 fn on_round_summary(_stream: &TcpStream, round: RoundSummary) {
@@ -130,10 +134,11 @@ fn loop_message(mut _stream: &TcpStream, info_game: &mut InfoGame) {
             }
             Message::PublicLeaderBoard(leader_board) => {
                 info_game.players = leader_board;
-                on_leader_board_message(&info_game.players)
+                on_leader_board_message(&info_game.players);
             }
             Message::Challenge(challenge) => {
-                on_challenge_message(_stream, challenge,  info_game);
+                println!("challenge");
+                on_challenge_message(_stream, challenge,   info_game);
             }
             Message::RoundSummary(round) => {
                 println!("roundSummary");

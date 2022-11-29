@@ -31,7 +31,7 @@ pub struct ChallengeResult {
     pub next_target: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PublicPlayer {
     pub name: String,
     pub stream_id: String,
