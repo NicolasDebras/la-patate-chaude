@@ -47,6 +47,7 @@ checksum = "4217ad341ebadf8d8e724e264f13e593e0648f5b3e94b3896a5df283be015ecc"
 name = "lib_common"
 version = "0.1.0"
 dependencies = [
+ "md5",
  "serde",
  "serde_json",
 ]

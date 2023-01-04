@@ -1,63 +1,74 @@
-use std::collections::hash_map::DefaultHasher;
-use std::hash::Hasher;
-use std::fmt::Write;
+use md5::Digest;
 use crate::message::{MD5HashCashInput, MD5HashCashOutput};
+extern crate md5;
 
-pub fn proof_of_work(message: MD5HashCashInput) -> MD5HashCashOutput {
+
+
+pub fn proof_of_work(input: MD5HashCashInput) -> MD5HashCashOutput {
     let mut seed: u64 = 0;
-    let mut hasher = DefaultHasher::new();
-    let mut hash: u64;
-
-    loop {
-        hasher.write(message.message.as_bytes());
-        hasher.write(&seed.to_be_bytes());
-        hash = hasher.finish();
-
-        let mut leading_zeros = 0;
-        for byte in hash.to_be_bytes().iter() {
-            if *byte == 0 {
-                leading_zeros += 8;
-            } else {
-                let mut mask = 0b10000000;
-                while mask > 0 && (*byte & mask) == 0 {
-                    leading_zeros += 1;
-                    mask >>= 1;
-                }
-                break;
-            }
-        }
-
-        if leading_zeros >= message.complexity {
-            break;
-        } else {
-            seed += 1;
-            hasher = DefaultHasher::new();
-        }
+    let mut digest: Digest = md5::compute(format!("{:016X}{}", seed, input.message));
+    while check_number_of_bit_at_zero(digest.as_slice(), input.complexity) == false {
+        seed += 1;
+        digest = md5::compute(format!("{:016X}{}", seed, input.message));
     }
-
-    let mut hash_str = String::new();
-    for byte in hash.to_be_bytes().iter() {
-        write!(hash_str, "{:02x}", byte).unwrap();
-    }
-
-    MD5HashCashOutput{ seed, hashcode: hash_str }
+    return MD5HashCashOutput { seed, hashcode: format!("{:032X}", digest) };
 }
 
+fn check_number_of_bit_at_zero(number: &[u8], expected_of_zero: u32) -> bool {
 
+    let mut number_as_bits: u128 = 0;
+    number_as_bits = number[0] as u128;
+    for i in 1..number.len() {
+        // decale les nombre des bits vers la gauches de 8 positions
+        number_as_bits = number_as_bits << 8;
+        number_as_bits += number[i] as u128;
+    }
+    number_as_bits = number_as_bits.reverse_bits();
+    let mut number_of_zero = 0;
+    while number_of_zero < expected_of_zero {
+        if (number_as_bits & 0x1) == 0 {
+            number_of_zero += 1;
+        } else {
+            return false;
+        }
+        number_as_bits = number_as_bits >> 1;
+    }
+    return true;
+}
 
-
+pub fn number_of_zeros(number: &[u8;16])-> i32{
+    let mut number_as_bits: u128 = 0;
+    number_as_bits = number[0] as u128;
+    for i in 1..number.len() {
+        // decale les nombre des bits vers la gauches de 8 positions
+        number_as_bits = number_as_bits << 8;
+        number_as_bits += number[i] as u128;
+    }
+    number_as_bits = number_as_bits.reverse_bits();
+    let mut number_of_zero = 0;
+    for _n in  0 .. 128 {
+        if (number_as_bits & 0x1) == 0 {
+            number_of_zero += 1;
+        }
+        number_as_bits = number_as_bits >> 1;
+    }
+    number_of_zero
+}
 
 #[test]
-fn test_sqrt()  {
-    let message = "hello";
-    let complexity = 9;
-    let test = MD5HashCashInput{ complexity: complexity, message: message.to_string() };
-    let result = proof_of_work(test);
-    let mut hasher = DefaultHasher::new();
-    hasher.write(message.as_bytes());
-    hasher.write(&result.seed.to_be_bytes());
-    let calculated_hash = hasher.finish();
-    let hash_u64 = u64::from_str_radix(&*result.hashcode, 16).unwrap();
-    assert_eq!(hash_u64, calculated_hash)
+fn test_check_number_of_bit_at_zero() {
 
+    let input = MD5HashCashInput{
+        complexity: 0,
+        message: "hello".to_string(),
+    };
+    let input2 = MD5HashCashInput{
+        complexity: 0,
+        message: "hellO".to_string(),
+    };
+    let test = proof_of_work(input);
+    let hello = proof_of_work(input2);
+    assert_ne!(test.hashcode , hello.hashcode )
 }
+
+

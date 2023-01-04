@@ -74,7 +74,7 @@ pub struct MD5HashCashInput {
     pub message: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialOrd, PartialEq)]
 pub struct MD5HashCashOutput {
     // Seed used to solve the challenge
     pub seed: u64,
