@@ -1,3 +1,3 @@
 pub mod message;
-mod md5;
+pub mod md5;
 

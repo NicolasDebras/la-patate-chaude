@@ -7,6 +7,7 @@ use lib_common::message::{
     Challenge, ChallengeAnswer, ChallengeResult, ChallengeValue, EndOfGame, MD5HashCashInput, MD5HashCashOutput, Message,
     PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome,
 };
+use lib_common::md5::proof_of_work;
 
 struct InfoGame {
     name_player: String,
@@ -24,11 +25,7 @@ pub fn send_message(mut stream: &TcpStream, message: Message) {
 }
 
 fn md5_challenge_resolve(input: MD5HashCashInput) -> MD5HashCashOutput {
-    let result_complexity: String = input.complexity.to_string();
-    let result_hashcode: String = input.message;
-    println!("input.complexity = {result_complexity:?}");
-    println!("input.complexity = {result_hashcode:?}");
-    MD5HashCashOutput { seed: 00, hashcode: String::from("hello") }
+    proof_of_work(input)
 }
 
 fn on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info:&mut InfoGame) {

@@ -1,17 +1,15 @@
-use rand::Rng;
 use std::collections::hash_map::DefaultHasher;
-use std::hash::{ Hasher};
+use std::hash::Hasher;
 use std::fmt::Write;
+use crate::message::{MD5HashCashInput, MD5HashCashOutput};
 
-fn proof_of_work(message: &str, complexity: u32) -> (u32, String) {
-    let mut rng = rand::thread_rng();
-    let mut seed: u32;
+pub fn proof_of_work(message: MD5HashCashInput) -> MD5HashCashOutput {
+    let mut seed: u64 = 0;
     let mut hasher = DefaultHasher::new();
     let mut hash: u64;
 
     loop {
-        seed = rng.gen();
-        hasher.write(message.as_bytes());
+        hasher.write(message.message.as_bytes());
         hasher.write(&seed.to_be_bytes());
         hash = hasher.finish();
 
@@ -29,9 +27,10 @@ fn proof_of_work(message: &str, complexity: u32) -> (u32, String) {
             }
         }
 
-        if leading_zeros >= complexity {
+        if leading_zeros >= message.complexity {
             break;
         } else {
+            seed += 1;
             hasher = DefaultHasher::new();
         }
     }
@@ -41,7 +40,7 @@ fn proof_of_work(message: &str, complexity: u32) -> (u32, String) {
         write!(hash_str, "{:02x}", byte).unwrap();
     }
 
-    (seed, hash_str)
+    MD5HashCashOutput{ seed, hashcode: hash_str }
 }
 
 
@@ -52,7 +51,13 @@ fn proof_of_work(message: &str, complexity: u32) -> (u32, String) {
 fn test_sqrt()  {
     let message = "hello";
     let complexity = 9;
-    let (seed, hash) = proof_of_work(message, complexity);
-    println!("seed: {:x}", seed);
-    println!("hash: {}", hash);
+    let test = MD5HashCashInput{ complexity: complexity, message: message.to_string() };
+    let result = proof_of_work(test);
+    let mut hasher = DefaultHasher::new();
+    hasher.write(message.as_bytes());
+    hasher.write(&result.seed.to_be_bytes());
+    let calculated_hash = hasher.finish();
+    let hash_u64 = u64::from_str_radix(&*result.hashcode, 16).unwrap();
+    assert_eq!(hash_u64, calculated_hash)
+
 }
