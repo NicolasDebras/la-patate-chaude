@@ -205,7 +205,7 @@ fn main() {
     let name_game = String::from(&args[1]);
     let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
     println!("Server listening on port 7878");
-
+    let mut  vecTcpStream: Vec<TcpStream> =Vec::new();
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
@@ -220,7 +220,10 @@ fn main() {
                 };
                 let mut player_vec: Vec<PublicPlayer> = Vec::new();
                 player_vec.push(player);
-                loop_message(&stream, &name_game, player_vec);
+                vecTcpStream.push(stream);
+                println!("{vecTcpStream:?}");
+
+                //loop_message(&stream, &name_game, player_vec);
             }
             Err(e) => {
                 println!("Error: {}", e);
