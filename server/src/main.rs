@@ -222,8 +222,13 @@ fn main() {
                 player_vec.push(player);
                 vecTcpStream.push(stream);
                 println!("{vecTcpStream:?}");
+                if vecTcpStream.len() >= 1 { // changer cela pour la prochaine fois
+                    for stream in &vecTcpStream {
+                        loop_message(&stream, &name_game, player_vec.clone());
+                    }
+                }
 
-                //loop_message(&stream, &name_game, player_vec);
+                //
             }
             Err(e) => {
                 println!("Error: {}", e);
