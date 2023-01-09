@@ -1,74 +1,71 @@
-use md5::Digest;
+use crate::challenge::Challenge;
 use crate::message::{MD5HashCashInput, MD5HashCashOutput};
 extern crate md5;
 
 
 
-pub fn proof_of_work(input: MD5HashCashInput) -> MD5HashCashOutput {
-    let mut seed: u64 = 0;
-    let mut digest: Digest = md5::compute(format!("{:016X}{}", seed, input.message));
-    while check_number_of_bit_at_zero(digest.as_slice(), input.complexity) == false {
-        seed += 1;
-        digest = md5::compute(format!("{:016X}{}", seed, input.message));
-    }
-    return MD5HashCashOutput { seed, hashcode: format!("{:032X}", digest) };
+pub struct MD5 {
+    pub input: MD5HashCashInput,
 }
 
-fn check_number_of_bit_at_zero(number: &[u8], expected_of_zero: u32) -> bool {
+impl  Challenge for MD5 {
+    type Input = MD5HashCashInput;
+    type Output = MD5HashCashOutput;
 
-    let mut number_as_bits: u128 = 0;
-    number_as_bits = number[0] as u128;
-    for i in 1..number.len() {
-        // decale les nombre des bits vers la gauches de 8 positions
-        number_as_bits = number_as_bits << 8;
-        number_as_bits += number[i] as u128;
+    fn name() -> String {
+        "MD5HashCash".to_string()
     }
-    number_as_bits = number_as_bits.reverse_bits();
-    let mut number_of_zero = 0;
-    while number_of_zero < expected_of_zero {
-        if (number_as_bits & 0x1) == 0 {
-            number_of_zero += 1;
-        } else {
-            return false;
+
+    fn new(input: Self::Input) -> Self {
+        MD5 { input }
+    }
+
+    fn solve(&self) -> Self::Output {
+        let mut answer = Self::Output {
+            seed: 0,
+            hashcode: "".to_string()
+        };
+
+        for seed in 0..=u64::MAX {
+            let input = format!("{seed:0>16X}{}", self.input.message);
+            let hashcode = format!("{:0>16X}", md5::compute(&input));
+            let num_hashcode = u128::from_str_radix(&hashcode, 16).unwrap();
+
+            let zeros = num_hashcode.leading_zeros();
+            if zeros >= self.input.complexity {
+                answer = Self::Output {
+                    seed,
+                    hashcode
+                };
+                break;
+            }
         }
-        number_as_bits = number_as_bits >> 1;
+        answer
     }
-    return true;
+
+    fn verify(&self, answer: &Self::Output) -> bool {
+        let seed = answer.seed;
+        let input = format!("{seed:0>16X}{}", self.input.message);
+        let hashcode = format!("{:X}", md5::compute(&input));
+        count_bits_to_zero(&hashcode) >= self.input.complexity && answer.hashcode == hashcode
+    }
 }
-
-pub fn number_of_zeros(number: &[u8;16])-> i32{
-    let mut number_as_bits: u128 = 0;
-    number_as_bits = number[0] as u128;
-    for i in 1..number.len() {
-        // decale les nombre des bits vers la gauches de 8 positions
-        number_as_bits = number_as_bits << 8;
-        number_as_bits += number[i] as u128;
-    }
-    number_as_bits = number_as_bits.reverse_bits();
-    let mut number_of_zero = 0;
-    for _n in  0 .. 128 {
-        if (number_as_bits & 0x1) == 0 {
-            number_of_zero += 1;
-        }
-        number_as_bits = number_as_bits >> 1;
-    }
-    number_of_zero
+fn count_bits_to_zero(hex_string: &str) -> u32 {
+    let hex_value = u128::from_str_radix(hex_string, 16).unwrap();
+    hex_value.leading_zeros()
 }
 
 #[test]
-fn test_check_number_of_bit_at_zero() {
-
-    let input = MD5HashCashInput{
-        complexity: 0,
-        message: "hello".to_string(),
+fn test(){
+    let md5= MD5HashCashInput{
+        complexity : 100,
+        message: "hello".to_string()
     };
-    let input2 = MD5HashCashInput{
-        complexity: 0,
-        message: "hellO".to_string(),
+    let md5Result = MD5HashCashOutput{
+        seed: 844,
+        hashcode: "00441745D9BDF8E5D3C7872AC9DBB2C3".to_string(),
     };
-    let test = proof_of_work(input);
-    let hello = proof_of_work(input2);
-    assert_ne!(test.hashcode , hello.hashcode )
+    let problem= MD5::new(md5);
+    println!("{:?}",problem.solve());
 }
-
 

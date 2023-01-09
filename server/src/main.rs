@@ -1,34 +1,51 @@
-use std::env;
+use std::{env, result};
 use std::fmt::format;
 use std::thread;
 use std::net::{TcpListener, TcpStream, Shutdown};
 use std::io::{Read, Write};
+use std::num::FpCategory::Normal;
 use std::ptr::null;
+use rand::Rng;
+use lipsum::lipsum;
+use serde::Serialize;
+use lib_common::challenge;
+use lib_common::challenge::Challenge as MD5Challenge ;
+use lib_common::md5::MD5;
 
-use lib_common::message::{Challenge, ChallengeAnswer, ChallengeResult, EndOfGame, Message, PublicPlayer, RoundSummary, SubscribeResult, ChallengeValue, MD5HashCashInput, MD5HashCashOutput, Welcome, Subscribe, ChallengeTimeout, PublicLeaderBoard, ReportedChallengeResult};
+use lib_common::message::Challenge ;
+use lib_common::message::{ChallengeAnswer, ChallengeResult, EndOfGame, Message, PublicPlayer, RoundSummary, SubscribeResult, ChallengeValue, MD5HashCashInput, MD5HashCashOutput, Welcome, Subscribe, ChallengeTimeout, PublicLeaderBoard, ReportedChallengeResult, Verification};
+use lib_common::message::Challenge::MD5HashCash;
 
 
-fn on_message_challenge_result(_stream: &TcpStream, challenge_result: ChallengeResult, info_game: &String, players_vec:   Vec<PublicPlayer>) ->  Vec<PublicPlayer>  {
+fn on_message_challenge_result(_stream: &TcpStream, challenge: &Challenge, challenge_result: ChallengeResult, info_game: &String, players_vec:   Vec<PublicPlayer>, difficulty: &u32) ->  Vec<PublicPlayer>  {
     println!("{challenge_result:?}");
     let result_answer = challenge_result.answer;
     let concurrent = challenge_result.next_target;
     match result_answer {
         ChallengeAnswer::MD5HashCash(md5_output) => {
-            println!("{md5_output:?}");
-            if md5_output.seed == 0 && md5_output.hashcode == "hello" {
-                return on_message_round_summary(_stream, &concurrent, info_game, players_vec);
+            match challenge {
+                Challenge::MD5HashCash(challenge) =>{
+                    let test = MD5::new(challenge.clone());
+                    if test.verify(&md5_output) {
+                        println!("yes");
+                        return on_message_round_summary(_stream, &concurrent, info_game, players_vec,difficulty );
+                    }
+
+                }
+                _ => {}
             }
+            return on_message_round_summary(_stream, &concurrent, info_game, players_vec, difficulty);
         }
     }
     return players_vec;
 
 }
 
-fn on_message_round_summary(_stream: &TcpStream, concurrent: &String, info_game: &String, leader_board:  Vec<PublicPlayer>, ) -> Vec<PublicPlayer> {
+fn on_message_round_summary(_stream: &TcpStream, concurrent: &String, info_game: &String, leader_board:  Vec<PublicPlayer>, difficulty: &u32) -> Vec<PublicPlayer> {
     let round_result = RoundSummary { challenge: info_game.clone().to_string(), chain: create_vec_reported_challenge(concurrent,  leader_board.clone()) };
     send_message(_stream, Message::RoundSummary(round_result));
     let leader_board_new = on_public_leader_board(_stream, leader_board.clone());
-    on_challenge_message(_stream, info_game.clone().to_string());
+    on_challenge_message(_stream, info_game.clone().to_string() , difficulty);
     return leader_board_new;
 }
 
@@ -52,7 +69,13 @@ fn on_message_end_of_game(_stream: &TcpStream, leader_board: Vec<PublicPlayer>) 
 
 fn loop_message(mut stream: &TcpStream, game_name: &String, mut players_vec: Vec<PublicPlayer>) {
     let mut buf = [0; 4];
+    let mut difficulty=0;
+    let mut verification= Challenge::MD5HashCash(MD5HashCashInput{
+        complexity: 0,
+        message: "".to_string(),
+    });
     loop {
+
         match stream.read_exact(&mut buf) {
             Ok(_) => {}
             Err(_) => {
@@ -69,41 +92,52 @@ fn loop_message(mut stream: &TcpStream, game_name: &String, mut players_vec: Vec
         println!("record : {record:?}");
         match record {
             Message::Hello => {
-                println!("Hello");
                 on_hello_message(stream);
             }
             Message::Welcome(welcome) => println!("Welcome : {welcome:?}"),
             Message::Subscribe(subscribe) => {
                 players_vec = on_subscribe_message(stream, subscribe, players_vec);
-                println!("{players_vec:?}");
                 players_vec = on_public_leader_board(stream, players_vec);
-                on_challenge_message(stream, game_name.clone());
+                let verification= on_challenge_message(stream, game_name.clone(), &difficulty);
             }
             Message::SubscribeResult(subscribe_result) => println!("{subscribe_result:?}"),
             Message::Challenge(challenge) => println!("{challenge:?}"),
             Message::ChallengeResult(challenge_result) => {
-                players_vec = on_message_challenge_result(stream, challenge_result, game_name,  players_vec);
+                players_vec = on_message_challenge_result(
+                    stream,
+                    &verification,
+                    challenge_result,
+                    game_name,
+                    players_vec,
+                    &difficulty
+                );
             }
             Message::RoundSummary(round_summary) => println!("{round_summary:?}"),
             Message::EndOfGame(end_game) => println!("{end_game:?}"),
             Message::ChallengeTimeout(challenge_timeout) => println!("{challenge_timeout:?}"),
             _ => todo!(),
         }
+        difficulty=difficulty+1;
     }
+
 }
 
-fn on_challenge_message(stream: &TcpStream, game_name: String) {
+fn on_challenge_message(stream: &TcpStream, game_name: String, difficulty :&u32)->  Challenge {
     if game_name == String::from("md5-hash-cash") {
+        let v: usize = rand::thread_rng().gen_range(0..*difficulty as usize);
+        let complexity = rand::thread_rng().gen_range(0..*difficulty);
         let input_md5 = MD5HashCashInput {
-            complexity: 1,
+            complexity: complexity,
             // message to sign
-            message: String::from("first Server"),
+            message:lipsum(v),
         };
-        let challenge = Challenge::MD5HashCash(input_md5);
+        let challenge = Challenge::MD5HashCash(input_md5.clone());
         send_message(stream, Message::Challenge(challenge));
+        return Challenge::MD5HashCash(input_md5.clone());
     } else if game_name == String::from("recover-secret") {
-        println!("Not Implement");
+        todo!("Not Implement")
     }
+     todo!("Not Implement");
 }
 
 fn on_hello_message(stream: &TcpStream) {

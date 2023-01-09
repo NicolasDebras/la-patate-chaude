@@ -87,7 +87,6 @@ pub struct ChallengeTime {
 }
 
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Challenge {
     MD5HashCash(MD5HashCashInput),
@@ -123,4 +122,9 @@ pub enum Message {
     RoundSummary(RoundSummary),
     EndOfGame(EndOfGame),
     ChallengeTimeout(ChallengeTimeout),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum Verification{
+    MD5HashCashInput
 }

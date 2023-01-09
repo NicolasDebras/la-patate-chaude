@@ -2,12 +2,12 @@ use std::env;
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::string::String;
-
+use lib_common::challenge::Challenge as MD5Challenge;
 use lib_common::message::{
     Challenge, ChallengeAnswer, ChallengeResult, ChallengeValue, EndOfGame, MD5HashCashInput, MD5HashCashOutput, Message,
     PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome,
 };
-use lib_common::md5::proof_of_work;
+use lib_common::md5::MD5;
 
 struct InfoGame {
     name_player: String,
@@ -24,16 +24,18 @@ pub fn send_message(mut stream: &TcpStream, message: Message) {
     stream.write_all(&serialized.as_bytes()).expect("failed to send message");
 }
 
-fn md5_challenge_resolve(input: MD5HashCashInput) -> MD5HashCashOutput {
-    proof_of_work(input)
-}
+
 
 fn on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info: &mut InfoGame, name: String) {
     println!("hello2");
     match challenge {
         Challenge::MD5HashCash(input) => {
-            println!("run the MD5 Challenge");
-            let challenge_answer = ChallengeAnswer::MD5HashCash(md5_challenge_resolve(input));
+            println!("run the MD5 Challenge {input:?}");
+            let test = MD5::new(input);
+            let value = test.solve();
+            print!("hello");
+            let challenge_answer = ChallengeAnswer::MD5HashCash(value);
+            print!("help");
             on_message_challenge_answer(stream, challenge_answer, game_info, name);
         }
         Challenge::ChallengeTimeout(input) => {
@@ -84,7 +86,7 @@ pub fn on_subscribe_result_message(subscribe_result: SubscribeResult) -> u32 {
 
 pub fn on_leader_board_message(leader_board: &Vec<PublicPlayer>) {
     println!("leader_board: {leader_board:?}");
-    //on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info:&mut InfoGame)
+    //on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info:&mut InfoGame);
 }
 
 fn on_round_summary(_stream: &TcpStream, round: RoundSummary) {
