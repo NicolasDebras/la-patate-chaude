@@ -1,18 +1,20 @@
-extern crate core;
 use std::{env, result};
 use std::fmt::format;
 use std::thread;
 use std::net::{TcpListener, TcpStream, Shutdown};
 use std::io::{Read, Write};
 use std::num::FpCategory::Normal;
+use std::ptr::null;
 use rand::Rng;
 use lipsum::lipsum;
+use serde::Serialize;
 use lib_common::challenge;
 use lib_common::challenge::Challenge as MD5Challenge ;
 use lib_common::md5::MD5;
 
 use lib_common::message::Challenge ;
-use lib_common::message::{ChallengeAnswer, ChallengeResult, EndOfGame, Message, PublicPlayer, RoundSummary, SubscribeResult, ChallengeValue, MD5HashCashInput, Welcome, Subscribe, ReportedChallengeResult};
+use lib_common::message::{ChallengeAnswer, ChallengeResult, EndOfGame, Message, PublicPlayer, RoundSummary, SubscribeResult, ChallengeValue, MD5HashCashInput, MD5HashCashOutput, Welcome, Subscribe, ChallengeTimeout, PublicLeaderBoard, ReportedChallengeResult, Verification};
+use lib_common::message::Challenge::MD5HashCash;
 
 
 fn on_message_challenge_result(_stream: &TcpStream, challenge: &Challenge, challenge_result: ChallengeResult, info_game: &String, players_vec:   Vec<PublicPlayer>, difficulty: &u32) ->  Vec<PublicPlayer>  {
@@ -35,6 +37,7 @@ fn on_message_challenge_result(_stream: &TcpStream, challenge: &Challenge, chall
             return on_message_round_summary(_stream, &concurrent, info_game, players_vec, difficulty);
         }
     }
+    return players_vec;
 
 }
 
@@ -64,21 +67,15 @@ fn on_message_end_of_game(_stream: &TcpStream, leader_board: Vec<PublicPlayer>) 
 
 }
 
-fn loop_message(streamVec: &Vec<TcpStream>, game_name: &String, mut players_vec: Vec<PublicPlayer>) {
+fn loop_message(mut stream: &TcpStream, game_name: &String, mut players_vec: Vec<PublicPlayer>) {
     let mut buf = [0; 4];
     let mut difficulty=0;
     let mut verification= Challenge::MD5HashCash(MD5HashCashInput{
         complexity: 0,
         message: "".to_string(),
     });
-    let mut stream: &TcpStream;
     loop {
-        let resultStream = streamVec.get(0);
-        println!("{:?}", players_vec);
-        match resultStream {
-            None => {return}
-            Some(x) => { stream=x;}
-        }
+
         match stream.read_exact(&mut buf) {
             Ok(_) => {}
             Err(_) => {
@@ -136,11 +133,11 @@ fn on_challenge_message(stream: &TcpStream, game_name: String, difficulty :&u32)
         };
         let challenge = Challenge::MD5HashCash(input_md5.clone());
         send_message(stream, Message::Challenge(challenge));
-        return Challenge::MD5HashCash(input_md5.clone());
+        return MD5HashCash(input_md5.clone());
     } else if game_name == String::from("recover-secret") {
         todo!("Not Implement")
     }
-     todo!("Not Implement");
+    todo!("Not Implement");
 }
 
 fn on_hello_message(stream: &TcpStream) {
@@ -152,26 +149,17 @@ fn on_subscribe_message(stream: &TcpStream, subscribe: Subscribe, mut players_ve
     println!("Subscribe = {subscribe:?}");
     let state_subscribe: SubscribeResult = SubscribeResult::Ok;
     send_message(stream, Message::SubscribeResult(state_subscribe));
-    for i  in 0 ..players_vec.len(){
-        match players_vec.get(i) {
-            None => {}
-            Some(_player) => {
-                if _player.stream_id ==  stream.peer_addr().unwrap().to_string()  {
-                    let player = PublicPlayer {
-                        name: subscribe.name,
-                        stream_id: stream.peer_addr().unwrap().to_string(),
-                        score: _player.score,
-                        steps: _player.steps,
-                        is_active: true,
-                        total_used_time: 0.0,
-                    };
-                    players_vec[i] = player;
-                    println!("{:?}", players_vec);
-                    return players_vec;
-                }
-            }
-        }
-    }
+    let _players = &players_vec[0];
+    let stream_id = &_players.stream_id;
+    let player_modified = PublicPlayer {
+        name: subscribe.name,
+        stream_id: stream_id.to_string(),
+        score: _players.score,
+        steps: 0,
+        is_active: true,
+        total_used_time: 0.0,
+    };
+    players_vec[0] = player_modified;
     return players_vec;
 }
 
@@ -217,8 +205,7 @@ fn main() {
     let name_game = String::from(&args[1]);
     let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
     println!("Server listening on port 7878");
-    let mut  vecTcpStream: Vec<TcpStream> =Vec::new();
-    let mut player_vec: Vec<PublicPlayer> = Vec::new();
+
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
@@ -231,15 +218,9 @@ fn main() {
                     is_active: true,
                     total_used_time: 0.0,
                 };
-
+                let mut player_vec: Vec<PublicPlayer> = Vec::new();
                 player_vec.push(player);
-                vecTcpStream.push(stream);
-                println!("{vecTcpStream:?}");
-                if vecTcpStream.len() > 1 { // changer cela pour la prochaine fois
-                    loop_message(&vecTcpStream, &name_game, player_vec.clone());
-                }
-
-                //
+                loop_message(&stream, &name_game, player_vec);
             }
             Err(e) => {
                 println!("Error: {}", e);

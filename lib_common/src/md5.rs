@@ -66,6 +66,6 @@ fn test(){
         hashcode: "00441745D9BDF8E5D3C7872AC9DBB2C3".to_string(),
     };
     let problem= MD5::new(md5);
-    println!("{:?}",problem.solve());
+    assert!(problem.verify(&md5Result));
 }
 
