@@ -11,7 +11,10 @@ fn recover_secret(tab: Vec<String>) -> String {
             //println!("test car : {:?}", car);
             // Récupération de l'index du caractère actuel.
             let idx = element_tuple.chars().position(|x| x == car).unwrap();
-            // Si l'index est supérieur à 0 (
+            println!("index {:?}", idx);
+            println!("tuple {:?}", element_tuple);
+            println!("car {:?}", car);
+            // Si l'index est supérieur ou égal à 0 (
             if idx > 0 {
                 // Si le caractère précédent est dans `res` et que le caractère actuel n'y est pas.
                 if res.contains(&element_tuple.chars().nth(idx-1).unwrap()) && res.contains(&car) == false {
@@ -20,7 +23,8 @@ fn recover_secret(tab: Vec<String>) -> String {
                     // Insertion du caractère actuel après le caractère précédent dans `res`.
                     res.insert(index+1, car);
                     println!("test 1 {:?}", res);
-                } 
+                }
+                
                 // Si le caractère actuel n'est pas dans `res`.
                 else if res.contains(&car) == false {
                     // Insertion du caractère actuel au début de `res`.
@@ -44,8 +48,12 @@ fn recover_secret(tab: Vec<String>) -> String {
                     }
                 }
                 
+            } else {
+                if res.contains(&car) == false {
+                    res.insert(0, car);
+                    println!("test 1.5 {:?}", res);
+                }
             }
-            //res.push(car);
         } 
     }
     res.iter().collect()
@@ -62,11 +70,14 @@ fn create_element_tuple(letters: String, element_tuple_sizes: Vec<usize>) -> Vec
     tab
 }
 
-fn main() {
-    let letters = "t cCehuCethoCeschouC'schout h";
-    let element_tuple_sizes = vec![3, 4, 5, 7, 7, 3];
-    let tab = create_element_tuple(letters.to_string(), element_tuple_sizes); // ca marche jusqu'a la 
-    println!("{:?}", tab);
-    println!("{}", recover_secret(tab));
+//manque la méthode de gestion de la classe 
+//prend en parametre la struct et en renvoie le message complété
 
-}
+// fn main() {
+//     let letters = "t cCehuCethoCeschouC'schout h";
+//     let element_tuple_sizes = vec![3, 4, 5, 7, 7, 3];
+//     let tab = create_element_tuple(letters.to_string(), element_tuple_sizes); // ca marche jusqu'a la 
+//     println!("{:?}", tab);
+//     println!("{}", recover_secret(tab));
+
+// }
