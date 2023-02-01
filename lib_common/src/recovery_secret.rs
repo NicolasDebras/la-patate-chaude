@@ -1,13 +1,50 @@
+use crate::message::{RecoverSecretInput, RecoverSecretOutput};
+use crate::challenge::Challenge;
+extern crate recovery_secret;
+
+
+pub struct RS {
+    pub input: RecoverSecretInput
+} 
+
+impl Challenge for RS {
+
+    type Input = RecoverSecretInput;
+    type Output = RecoverSecretOutput;
+
+    //retourne le nom du challenge
+    fn name() -> String {
+        "RecoverSecret".to_string();
+    }
+
+    fn new(input: Self::Input) -> Self {
+        RS { input }
+    }
+    
+    fn solve(&self) -> Self::Output {
+        let tab = create_element_tuple(self.input.letters, self.input.tuple_sizes);
+        let res = recover_secret(tab);
+        return Self::Output {
+            res
+        }
+    }
+
+    //a faire plus tard 
+    fn verify(&self, answer: &Self::Output) -> bool {
+        return true;
+    }
+
+}
+
+
 // La fonction `recover_secret` prend en entrée un tableau de chaînes et renvoie une chaîne.
 fn recover_secret(tab: Vec<String>) -> String {
     // Initialisation d'un tableau vide pour stocker les résultats.
     let mut res = Vec::new();
-
     // Boucle sur tous les éléments du tableau
     for element_tuple in tab {
         // Boucle sur les caractères de chaque élément.
         for car in element_tuple.chars() {
-
             //println!("test car : {:?}", car);
             // Récupération de l'index du caractère actuel.
             let idx = element_tuple.chars().position(|x| x == car).unwrap();
@@ -23,8 +60,7 @@ fn recover_secret(tab: Vec<String>) -> String {
                     // Insertion du caractère actuel après le caractère précédent dans `res`.
                     res.insert(index+1, car);
                     println!("test 1 {:?}", res);
-                }
-                
+                }               
                 // Si le caractère actuel n'est pas dans `res`.
                 else if res.contains(&car) == false {
                     // Insertion du caractère actuel au début de `res`.
@@ -43,11 +79,9 @@ fn recover_secret(tab: Vec<String>) -> String {
                         // Suppression du caractère suivant de `res`.     
                         res.remove(x.unwrap_or_default());
                         //res.insert(x)
-                        println!("test 3 {:?}", res);
-                        
+                        println!("test 3 {:?}", res);                        
                     }
-                }
-                
+                }  
             } else {
                 if res.contains(&car) == false {
                     res.insert(0, car);

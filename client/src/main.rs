@@ -25,7 +25,6 @@ pub fn send_message(mut stream: &TcpStream, message: Message) {
 }
 
 
-
 fn on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info: &mut InfoGame, name: String) {
     println!("hello2");
     match challenge {
@@ -38,11 +37,13 @@ fn on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info: &mu
             print!("help");
             on_message_challenge_answer(stream, challenge_answer, game_info, name);
         }
+        Challenge::RecoverSecret() => {
+            print!("test")
+        }
         Challenge::ChallengeTimeout(input) => {
             println!("test= {input:?}");
             println!("test 129");
         }
-        Challenge::RecoverSecret() => println!("test"),
     }
 }
 

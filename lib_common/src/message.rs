@@ -86,6 +86,20 @@ pub struct ChallengeTime {
     message: String,
 }
 
+//Structures de données en entrée pour le recovery challenge  
+#[derive(Debug, Serialize, Deserialize, Clone, PartialOrd, PartialEq)]
+pub struct RecoverSecretInput {
+    pub word_count: usize,
+    pub letters: String,
+    pub tuple_sizes: Vec<usize>,
+}
+
+//Structures de données en sortie pour le recovery challenge  
+#[derive(Debug, Serialize, Deserialize, Clone, PartialOrd, PartialEq)]
+pub struct RecoverSecretOutput {
+    pub secret_sentence: String,
+}
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Challenge {
