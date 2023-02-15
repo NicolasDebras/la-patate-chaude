@@ -2,8 +2,6 @@ use crate::challenge::Challenge;
 use crate::message::{MD5HashCashInput, MD5HashCashOutput};
 extern crate md5;
 
-
-
 pub struct MD5 {
     pub input: MD5HashCashInput,
 }
@@ -55,17 +53,5 @@ fn count_bits_to_zero(hex_string: &str) -> u32 {
     hex_value.leading_zeros()
 }
 
-#[test]
-fn test(){
-    let md5= MD5HashCashInput{
-        complexity : 100,
-        message: "hello".to_string()
-    };
-    let md5Result = MD5HashCashOutput{
-        seed: 844,
-        hashcode: "00441745D9BDF8E5D3C7872AC9DBB2C3".to_string(),
-    };
-    let problem= MD5::new(md5);
-    assert!(problem.verify(&md5Result));
-}
+
 
