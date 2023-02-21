@@ -22,7 +22,7 @@ fn test_correct_c_est_chou() {
 }
 
 #[test]
-fn test(){
+fn test_md5(){
     let md5= MD5HashCashInput{
         complexity : 100,
         message: "hello".to_string()
