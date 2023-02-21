@@ -1,6 +1,6 @@
 use crate::message::{RecoverSecretInput, RecoverSecretOutput};
 use crate::challenge::Challenge;
-extern crate recovery_secret;
+
 
 
 pub struct RS {
@@ -14,7 +14,7 @@ impl Challenge for RS {
 
     //retourne le nom du challenge
     fn name() -> String {
-        "RecoverSecret".to_string();
+        "RecoverSecret".to_string()
     }
 
     fn new(input: Self::Input) -> Self {
@@ -22,10 +22,10 @@ impl Challenge for RS {
     }
     
     fn solve(&self) -> Self::Output {
-        let tab = create_element_tuple(self.input.letters, self.input.tuple_sizes);
+        let tab = create_element_tuple(self.input.letters.clone(), self.input.tuple_sizes.clone());
         let res = recover_secret(tab);
         return Self::Output {
-            res
+            secret_sentence : res
         }
     }
 
@@ -35,8 +35,6 @@ impl Challenge for RS {
     }
 
 }
-
-
 // La fonction `recover_secret` prend en entrée un tableau de chaînes et renvoie une chaîne.
 fn recover_secret(tab: Vec<String>) -> String {
     // Initialisation d'un tableau vide pour stocker les résultats.
