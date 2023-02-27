@@ -1,5 +1,6 @@
 use crate::challenge::Challenge;
 use crate::message::{RecoverSecretInput, RecoverSecretOutput};
+use std::collections::HashMap;
 
 /// Le challenge `RecoverSecret` est un challenge de type `Challenge`.
 pub struct RS {
@@ -35,10 +36,31 @@ impl Challenge for RS {
         };
     }
 
-    /// a implementer pour verifier la solution
     fn verify(&self, answer: &Self::Output) -> bool {
-        println!("{}", answer.secret_sentence);
-        return true;
+        // Vérifie que chaque lettre apparaît dans l'ordre relatif correct.
+        let mut last_seen: HashMap<char, usize> = HashMap::new();
+        for car in answer.secret_sentence.chars() {
+            let tuple_index =
+                create_element_tuple(self.input.letters.clone(), self.input.tuple_sizes.clone())
+                    .iter()
+                    .position(|tuple| tuple.contains(car))
+                    .unwrap();
+            let car_index =
+                create_element_tuple(self.input.letters.clone(), self.input.tuple_sizes.clone())
+                    [tuple_index]
+                    .chars()
+                    .position(|c| c == car)
+                    .unwrap();
+            if let Some(prev_index) = last_seen.get(&car) {
+                if tuple_index != *prev_index || car_index != (*prev_index + 1) {
+                    // Si la lettre n'est pas dans l'ordre relatif correct, renvoie `false`.
+                    return false;
+                }
+            }
+            last_seen.insert(car, tuple_index);
+        }
+
+        return has_unique_chars(answer.secret_sentence.clone());
     }
 }
 
@@ -124,4 +146,17 @@ fn create_element_tuple(letters: String, element_tuple_sizes: Vec<usize>) -> Vec
         i = i + element;
     }
     tab
+}
+
+//onction qui verifie si pas de doublon dans un string
+fn has_unique_chars(s: String) -> bool {
+    let mut seen_chars = [false; 256];
+    for c in s.chars() {
+        let c_val = c as usize;
+        if seen_chars[c_val] {
+            return false;
+        }
+        seen_chars[c_val] = true;
+    }
+    true
 }

@@ -15,10 +15,28 @@ fn test_correct_c_est_chou() {
         tuple_sizes: vec![3, 4, 5, 7, 7, 3],
     };
     let rs_correct = RecoverSecretOutput {
+        secret_sentence: "C'est chou".to_string(),
+    };
+    let test = RS::new(rs_input);
+    test.solve();
+    let result = test.verify(&rs_correct);
+    assert_eq!(result, true)
+}
+
+#[test]
+fn test_not_correct_c_est_chou() {
+    let rs_input = RecoverSecretInput {
+        word_count: 1,
+        letters: "t cCehuCethoCeschouC'schout h".to_string(),
+        tuple_sizes: vec![3, 4, 5, 7, 7, 3],
+    };
+    let rs_correct = RecoverSecretOutput {
         secret_sentence: "C'est Chou".to_string(),
     };
     let test = RS::new(rs_input);
-    assert!(test.verify(&rs_correct))
+    test.solve();
+    let result = test.verify(&rs_correct);
+    assert_eq!(result, false)
 }
 
 #[test]
