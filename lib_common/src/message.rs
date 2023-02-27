@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Welcome {
@@ -7,8 +7,9 @@ pub struct Welcome {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Subscribe {
-    pub name: String
+    pub name: String,
 }
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Hello {}
 
@@ -81,6 +82,7 @@ pub struct MD5HashCashOutput {
     // hashcode found using seed + message
     pub hashcode: String,
 }
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChallengeTime {
     message: String,
@@ -111,17 +113,17 @@ pub enum Challenge {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ChallengeAnswer {
     MD5HashCash(MD5HashCashOutput),
-    RecoverSecret(RecoverSecretOutput)
+    RecoverSecret(RecoverSecretOutput),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct   ChallengeTimeout{
+pub struct ChallengeTimeout {
     message: String,
 }
 
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct PublicLeaderBoard{
+pub struct PublicLeaderBoard {
     pub players: Vec<PublicPlayer>,
 }
 
@@ -140,6 +142,6 @@ pub enum Message {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub enum Verification{
+pub enum Verification {
     MD5HashCashInput
 }

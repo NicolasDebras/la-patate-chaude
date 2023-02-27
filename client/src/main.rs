@@ -2,12 +2,13 @@ use std::env;
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::string::String;
+
 use lib_common::challenge::Challenge as MD5Challenge;
+use lib_common::md5::MD5;
 use lib_common::message::{
     Challenge, ChallengeAnswer, ChallengeResult, ChallengeValue, EndOfGame, Message,
     PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome,
 };
-use lib_common::md5::MD5;
 use lib_common::recovery_secret::RS;
 use lib_common::send_message::buffer_to_object;
 
@@ -36,7 +37,7 @@ fn on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info: &mu
             let challenge_answer = ChallengeAnswer::MD5HashCash(value);
             on_message_challenge_answer(stream, challenge_answer, game_info, name);
         }
-        Challenge::RecoverSecret(input ) => {
+        Challenge::RecoverSecret(input) => {
             let test = RS::new(input);
             let value = test.solve();
             let challenge_answer = ChallengeAnswer::RecoverSecret(value);
@@ -50,15 +51,15 @@ fn on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info: &mu
 }
 
 fn on_message_challenge_answer(stream: &TcpStream, challenge_answer: ChallengeAnswer, game_info: &mut InfoGame, name: String) {
-    let challenge_result = ChallengeResult { answer: challenge_answer, next_target: choose_the_player(game_info.players.clone(),name)  };
+    let challenge_result = ChallengeResult { answer: challenge_answer, next_target: choose_the_player(game_info.players.clone(), name) };
     let message = Message::ChallengeResult(challenge_result);
     send_message(stream, message);
 }
 
-fn choose_the_player(players: Vec<PublicPlayer>, name: String)-> String {
-    for name_player in players{
+fn choose_the_player(players: Vec<PublicPlayer>, name: String) -> String {
+    for name_player in players {
         println!("{:?}", name_player.name);
-        if name_player.name != name{
+        if name_player.name != name {
             return name_player.name;
         }
     }
@@ -89,7 +90,6 @@ pub fn on_subscribe_result_message(subscribe_result: SubscribeResult) -> u32 {
 
 pub fn on_leader_board_message(leader_board: &Vec<PublicPlayer>) {
     println!("leader_board: {leader_board:?}");
-    //on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info:&mut InfoGame);
 }
 
 fn on_round_summary(_stream: &TcpStream, round: RoundSummary) {
@@ -168,8 +168,6 @@ fn loop_message(mut _stream: &TcpStream, info_game: &mut InfoGame) {
         }
     }
 }
-
-
 
 
 fn main() {
