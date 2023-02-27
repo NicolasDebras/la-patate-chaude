@@ -12,17 +12,19 @@
 #### Pour md5-hash-cash
 
 ```bash
+./server  --monitor
 cargo  run --bin  client name localhost
 cargo  run --bin  client name2 localhost
-./server  --monitor
+./start_server; ./start_server
 ```
 
 #### Pour recover-secret
 
 ```bash
+./server -g  recover-secret -c 2 --monitor
 cargo  run --bin  client name localhost
 cargo  run --bin  client name2 localhost
-./server -g  recover-secret -c 2 --monitor
+./start_server; ./start_server
 ```
 
 ### Partie serveur et client rust

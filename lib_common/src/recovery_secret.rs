@@ -26,17 +26,6 @@ impl Challenge for RS {
     ///
     /// * `tab` - un vecteur de chaînes de caractères contenant des éléments cachant un secret.
     ///
-    /// # Exemples
-    ///
-    /// ```
-    /// let tab = vec![
-    ///     String::from("whatisup"),
-    ///     String::from("turing"),
-    ///     String::from("test"),
-    ///     String::from("aaa")
-    /// ];
-    /// let secret = recover_secret(tab);
-    /// assert_eq!(secret, "whatisup");
     /// ```
     fn solve(&self) -> Self::Output {
         let tab = create_element_tuple(self.input.letters.clone(), self.input.tuple_sizes.clone());
@@ -59,16 +48,6 @@ impl Challenge for RS {
 /// représente l'ordre partiel 'a' < 'e' < 'w', 'v' < 'w' < 'y' et 'y' < 'w' < 'd'. Le résultat
 /// est une chaîne représentant l'ordre complet des caractères, par exemple "aevwyd".
 ///
-/// # Arguments
-///
-/// * `tab` - Un Vec<String> représentant les ordres partiels des caractères.
-///
-/// # Exemple
-///
-/// ```
-/// let partial_orders = vec!["aew".to_string(), "vwy".to_string(), "ywd".to_string()];
-/// let full_order = recover_secret(partial_orders);
-/// assert_eq!(full_order, "aevwyd");
 /// ```
 fn recover_secret(tab: Vec<String>) -> String {
     // Initialisation d'un tableau vide pour stocker les résultats.

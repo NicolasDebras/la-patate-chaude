@@ -5,7 +5,7 @@ use lib_common::message::MD5HashCashOutput;
 use lib_common::message::{RecoverSecretInput, RecoverSecretOutput};
 use lib_common::recovery_secret::RS;
 
-//fichier de test de recovery secret
+///fichier de test de recovery secret et de md5 hashcash
 
 #[test]
 fn test_correct_c_est_chou() {
