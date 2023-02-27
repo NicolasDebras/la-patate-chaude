@@ -10,6 +10,7 @@ use lib_common::message::Challenge ;
 use lib_common::message::{ChallengeAnswer, ChallengeResult, EndOfGame, Message, PublicPlayer, RoundSummary, SubscribeResult, 
     ChallengeValue, MD5HashCashInput, Welcome, Subscribe, ReportedChallengeResult};
 use lib_common::message::Challenge::MD5HashCash;
+use lib_common::send_message::buffer_to_object;
 
 
 fn on_message_challenge_result(_stream: &TcpStream, challenge: &Challenge, challenge_result: ChallengeResult, info_game: &String, players_vec:   Vec<PublicPlayer>, difficulty: &u32) ->  Vec<PublicPlayer>  {
@@ -19,7 +20,7 @@ fn on_message_challenge_result(_stream: &TcpStream, challenge: &Challenge, chall
     match result_answer {
         ChallengeAnswer::MD5HashCash(md5_output) => {
             match challenge {
-                Challenge::MD5HashCash(challenge) =>{
+                MD5HashCash(challenge) =>{
                     let test = MD5::new(challenge.clone());
                     if test.verify(&md5_output) {
                         println!("yes");
@@ -70,7 +71,7 @@ fn on_message_end_of_game(_stream: &TcpStream, leader_board: Vec<PublicPlayer>) 
 fn loop_message(mut stream: &TcpStream, game_name: &String, mut players_vec: Vec<PublicPlayer>) {
     let mut buf = [0; 4];
     let mut difficulty=0;
-    let verification= Challenge::MD5HashCash(MD5HashCashInput{
+    let verification= MD5HashCash(MD5HashCashInput{
         complexity: 0,
         message: "".to_string(),
     });
@@ -127,11 +128,11 @@ fn on_challenge_message(stream: &TcpStream, game_name: String, difficulty :&u32)
         let v: usize = rand::thread_rng().gen_range(0..*difficulty as usize);
         let complexity = rand::thread_rng().gen_range(0..*difficulty);
         let input_md5 = MD5HashCashInput {
-            complexity: complexity,
+            complexity,
             // message to sign
             message:lipsum(v),
         };
-        let challenge = Challenge::MD5HashCash(input_md5.clone());
+        let challenge = MD5HashCash(input_md5.clone());
         send_message(stream, Message::Challenge(challenge));
         return MD5HashCash(input_md5.clone());
     } else if game_name == String::from("recover-secret") {
@@ -183,14 +184,6 @@ fn on_public_leader_board(stream: &TcpStream, players_vec: Vec<PublicPlayer>) ->
     return players_vec;
 }
 
-fn buffer_to_object(message_buf: &mut Vec<u8>) -> Message {
-    let message = std::str::from_utf8(&message_buf).expect("failed to parse message");
-    //  println!("message: {message:?}");
-
-    let record: Message = serde_json::from_str(&message).expect("failed to serialize message");
-    //  println!("message: {record:?}");
-    record
-}
 
 pub fn send_message(mut stream: &TcpStream, message: Message) {
     let serialized = serde_json::to_string(&message).expect("failed to serialized object");

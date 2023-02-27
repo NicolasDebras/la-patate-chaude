@@ -284,6 +284,9 @@ considéré(s).
 cargo run --bin  server md5-hash-cash
 cargo  run --bin  client [XX] localhost
 
+pour lancer le deuxième jeux
+./server -g  recover-secret -c 2 --monitor
+
 <!-- for PDF export using pandoc
 ---
 title: "Project Rust"

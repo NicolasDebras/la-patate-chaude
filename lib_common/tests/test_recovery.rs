@@ -34,5 +34,5 @@ fn test_md5(){
     let test = MD5::new(md5);
     test.solve();
     let result= test.verify(&md5_result);
-    assert!(result== true);
+    assert_eq!(result, true);
 }

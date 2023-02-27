@@ -9,6 +9,7 @@ use lib_common::message::{
 };
 use lib_common::md5::MD5;
 use lib_common::recovery_secret::RS;
+use lib_common::send_message::buffer_to_object;
 
 struct InfoGame {
     name_player: String,
@@ -27,19 +28,15 @@ pub fn send_message(mut stream: &TcpStream, message: Message) {
 
 
 fn on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info: &mut InfoGame, name: String) {
-    println!("hello2");
     match challenge {
         Challenge::MD5HashCash(input) => {
             println!("run the MD5 Challenge {input:?}");
             let test = MD5::new(input);
             let value = test.solve();
-            print!("hello");
             let challenge_answer = ChallengeAnswer::MD5HashCash(value);
-            print!("help");
             on_message_challenge_answer(stream, challenge_answer, game_info, name);
         }
         Challenge::RecoverSecret(input ) => {
-            print!("run the Recovery Challenge");
             let test = RS::new(input);
             let value = test.solve();
             let challenge_answer = ChallengeAnswer::RecoverSecret(value);
@@ -172,14 +169,7 @@ fn loop_message(mut _stream: &TcpStream, info_game: &mut InfoGame) {
     }
 }
 
-fn buffer_to_object(message_buf: &mut Vec<u8>) -> Message {
-    let message = std::str::from_utf8(&message_buf).expect("failed to parse message");
-    //  println!("message: {message:?}");
 
-    let record: Message = serde_json::from_str(&message).expect("failed to serialize message");
-    //  println!("message: {record:?}");
-    record
-}
 
 
 fn main() {

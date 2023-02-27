@@ -31,6 +31,7 @@ impl Challenge for RS {
 
     //a faire plus tard 
     fn verify(&self, answer: &Self::Output) -> bool {
+        println!("{}", answer.secret_sentence);
         return true;
     }
 
@@ -101,15 +102,3 @@ fn create_element_tuple(letters: String, element_tuple_sizes: Vec<usize>) -> Vec
     }
     tab
 }
-
-//manque la méthode de gestion de la classe 
-//prend en parametre la struct et en renvoie le message complété
-
-// fn main() {
-//     let letters = "t cCehuCethoCeschouC'schout h";
-//     let element_tuple_sizes = vec![3, 4, 5, 7, 7, 3];
-//     let tab = create_element_tuple(letters.to_string(), element_tuple_sizes); // ca marche jusqu'a la 
-//     println!("{:?}", tab);
-//     println!("{}", recover_secret(tab));
-
-// }
