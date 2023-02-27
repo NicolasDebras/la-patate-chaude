@@ -30,6 +30,7 @@ cargo  run --bin  client name2 localhost
 ```bash
 
 Pour la partie client et serveur qu'on a codé en rust
+
 ```bash
 cargo run --bin  server md5-hash-cash
 cargo  run --bin  client name localhost
@@ -38,18 +39,26 @@ cargo  run --bin  client name localhost
 Le serveur ne marche qu'avec un client. Il ne marche pas avec plusieurs clients.
 Une itération sur une branch mais n'a pas été convaincant
 
+### Partie documentation
+
+Pour voir la documentation du projet
+
+```bash
+cargo doc --open
+```
+
 ### Lib en plus
 
 lipsum = "0.8"
 
 Cette librairie permet de générer des phrases aléatoires en lips um.
-Grâce a cela nous avons le moyen de générer des phrases aléatoires pour le challenge md5-hash-cash.
+Grâce à cela nous avons le moyen de générer des phrases aléatoires pour le challenge md5-hash-cash.
 
-Pour la complexity est généré aléatoirement entre 0 et le nombre de mot réussi.
+Pour la complexity est généré aléatoirement entre 0 et le nombre de mots réussi.
 
 ### Bonus en plus
 
-## Bonus possibles:
+## Bonus possibles :
 
 * Réaliser une interface pour le client et/ou le serveur
 
@@ -70,8 +79,8 @@ Fait un serveur et un client en rust
   (ce qui est un élément très qualitatif pour vos codes en Rust en plus d'être un bonus dans le cadre de ce projet)
     * les `unwrap()`, les `expect()`, les `panic!()`
     * les `mut` (variables mutables)
-    * les *warnings* de compilation
+    * less *warnings* de compilation
 
 Nous avons essayé le plus possible de supprimer les erreurs de compilation et les warnings
-et les erreurs de panic. Par exemple le client est gérer si s'appelle deux fois avec le même nom.
+et les erreurs de panic. Par exemple le client est géré si s'appelle deux fois avec le même nom.
 Ou quand il a un timeout du niveau du serveur.

@@ -1,23 +1,43 @@
 use crate::challenge::Challenge;
 use crate::message::{RecoverSecretInput, RecoverSecretOutput};
 
+/// Le challenge `RecoverSecret` est un challenge de type `Challenge`.
 pub struct RS {
     pub input: RecoverSecretInput,
 }
 
+/// L'implémentation du challenge `RecoverSecret`.
 impl Challenge for RS {
     type Input = RecoverSecretInput;
     type Output = RecoverSecretOutput;
 
-    //retourne le nom du challenge
+    ///retourne le nom du challenge
     fn name() -> String {
         "RecoverSecret".to_string()
     }
-
+    /// Crée une nouvelle instance du défi de recover secret.
     fn new(input: Self::Input) -> Self {
         RS { input }
     }
 
+    /// Cette fonction prend en entrée un tableau de chaînes de caractères `tab` et renvoie une chaîne de caractères qui représente le secret caché dans les éléments de `tab`.
+    ///
+    /// # Arguments
+    ///
+    /// * `tab` - un vecteur de chaînes de caractères contenant des éléments cachant un secret.
+    ///
+    /// # Exemples
+    ///
+    /// ```
+    /// let tab = vec![
+    ///     String::from("whatisup"),
+    ///     String::from("turing"),
+    ///     String::from("test"),
+    ///     String::from("aaa")
+    /// ];
+    /// let secret = recover_secret(tab);
+    /// assert_eq!(secret, "whatisup");
+    /// ```
     fn solve(&self) -> Self::Output {
         let tab = create_element_tuple(self.input.letters.clone(), self.input.tuple_sizes.clone());
         let res = recover_secret(tab);
@@ -26,14 +46,30 @@ impl Challenge for RS {
         };
     }
 
-    //a faire plus tard
+    /// a implementer pour verifier la solution
     fn verify(&self, answer: &Self::Output) -> bool {
         println!("{}", answer.secret_sentence);
         return true;
     }
 }
 
-// La fonction `recover_secret` prend en entrée un tableau de chaînes et renvoie une chaîne.
+/// Etant donné une liste de chaînes représentant des ordres partiels de caractères, cette fonction récupère
+/// l'ordre complet des caractères. La liste d'entrée est un Vec<String> où chaque chaîne
+/// représente un ordre partiel des caractères. Par exemple, l'entrée ["aew", "vwy", "ywd"]
+/// représente l'ordre partiel 'a' < 'e' < 'w', 'v' < 'w' < 'y' et 'y' < 'w' < 'd'. Le résultat
+/// est une chaîne représentant l'ordre complet des caractères, par exemple "aevwyd".
+///
+/// # Arguments
+///
+/// * `tab` - Un Vec<String> représentant les ordres partiels des caractères.
+///
+/// # Exemple
+///
+/// ```
+/// let partial_orders = vec!["aew".to_string(), "vwy".to_string(), "ywd".to_string()];
+/// let full_order = recover_secret(partial_orders);
+/// assert_eq!(full_order, "aevwyd");
+/// ```
 fn recover_secret(tab: Vec<String>) -> String {
     // Initialisation d'un tableau vide pour stocker les résultats.
     let mut res = Vec::new();
@@ -100,7 +136,7 @@ fn recover_secret(tab: Vec<String>) -> String {
     res.iter().collect()
 }
 
-//fonction qui permet de créer un tableau de string corresponds au chaine entré en paramètre et tuple size
+///fonction qui permet de créer un tableau de string corresponds au chaine entré en paramètre et tuple size
 fn create_element_tuple(letters: String, element_tuple_sizes: Vec<usize>) -> Vec<String> {
     let mut i = 0;
     let mut tab = Vec::new();

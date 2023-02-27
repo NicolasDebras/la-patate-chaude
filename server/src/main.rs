@@ -15,6 +15,7 @@ use lib_common::message::{
 };
 use lib_common::send_message::buffer_to_object;
 
+/// cette fonction permet de créer un challenge result
 fn on_message_challenge_result(
     _stream: &TcpStream,
     challenge: &Challenge,
@@ -60,6 +61,7 @@ fn on_message_challenge_result(
     return players_vec;
 }
 
+/// cette fonction envoie le message round summary au client et renvoie le nouveau leader board
 fn on_message_round_summary(
     _stream: &TcpStream,
     concurrent: &String,
@@ -77,6 +79,7 @@ fn on_message_round_summary(
     return leader_board_new;
 }
 
+/// cette fonction renvoie ce qui c'est passé pour le client qui a fait la request
 fn create_reported_challenge(player: PublicPlayer, concurrent: String) -> ReportedChallengeResult {
     ReportedChallengeResult {
         name: player.name,
@@ -87,6 +90,8 @@ fn create_reported_challenge(player: PublicPlayer, concurrent: String) -> Report
     }
 }
 
+/// cette fonction permet de créer le vecteur de reported challenge
+/// ce qui nous permet de renvoyer le leader board
 fn create_vec_reported_challenge(
     concurrent: &String,
     leader_board: Vec<PublicPlayer>,
@@ -98,12 +103,14 @@ fn create_vec_reported_challenge(
     result
 }
 
+/// cette fonction renvoie le la fin du jeux mais pas implémenter car pas de fin de jeux
 #[allow(dead_code)]
 fn on_message_end_of_game(_stream: &TcpStream, leader_board: Vec<PublicPlayer>) {
     let result_finish = EndOfGame { leader_board };
     send_message(_stream, Message::EndOfGame(result_finish));
 }
 
+/// cette fonction permet de faire une boucle message pour répondre au joueur qui a fait une request
 fn loop_message(mut stream: &TcpStream, game_name: &String, mut players_vec: Vec<PublicPlayer>) {
     let mut buf = [0; 4];
     let mut difficulty = 0;
@@ -157,6 +164,7 @@ fn loop_message(mut stream: &TcpStream, game_name: &String, mut players_vec: Vec
     }
 }
 
+/// cette fonction permet de vérifier si le client a bien répondu au challenge md5-hash-cash
 fn on_challenge_message(stream: &TcpStream, game_name: String, difficulty: &u32) -> Challenge {
     if game_name == String::from("md5-hash-cash") {
         let v: usize = rand::thread_rng().gen_range(0..*difficulty as usize);
@@ -175,11 +183,13 @@ fn on_challenge_message(stream: &TcpStream, game_name: String, difficulty: &u32)
     todo!("Not Implement");
 }
 
+/// pour répondre au message hello du client en lançant un welcome
 fn on_hello_message(stream: &TcpStream) {
     let message_welcome = Welcome { version: 1 };
     send_message(stream, Message::Welcome(message_welcome));
 }
 
+///  cette fonction permet de subscribe le client du jeux
 fn on_subscribe_message(
     stream: &TcpStream,
     subscribe: Subscribe,
@@ -202,6 +212,7 @@ fn on_subscribe_message(
     return players_vec;
 }
 
+/// cette fonction permet au client de lui envoyer la mise a jour du leader board
 fn on_public_leader_board(stream: &TcpStream, players_vec: Vec<PublicPlayer>) -> Vec<PublicPlayer> {
     let _players = &players_vec[0];
     let stream_id = &_players.stream_id;
@@ -222,6 +233,7 @@ fn on_public_leader_board(stream: &TcpStream, players_vec: Vec<PublicPlayer>) ->
     return players_vec;
 }
 
+/// permet d'envoyer les messages au client
 pub fn send_message(mut stream: &TcpStream, message: Message) {
     let serialized = serde_json::to_string(&message).expect("failed to serialized object");
     let serialized_size = serialized.len() as u32;
@@ -234,6 +246,7 @@ pub fn send_message(mut stream: &TcpStream, message: Message) {
         .expect("failed to send message");
 }
 
+/// Cette fonction permet de lancer le serveur et d'attendre les connections des clients
 fn main() {
     let args: Vec<String> = env::args().collect();
     let name_game = String::from(&args[1]);

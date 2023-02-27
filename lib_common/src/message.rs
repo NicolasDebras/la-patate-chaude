@@ -41,7 +41,6 @@ pub struct PublicPlayer {
     pub total_used_time: f64,
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ChallengeValue {
     Unreachable,
@@ -49,7 +48,6 @@ pub enum ChallengeValue {
     BadResult { used_time: f64, next_target: String },
     Ok { used_time: f64, next_target: String },
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ReportedChallengeResult {

@@ -1,5 +1,5 @@
 use std::env;
-use std::io::{Read, Write};
+use std::io::Read;
 use std::net::TcpStream;
 use std::string::String;
 
@@ -7,30 +7,20 @@ use lib_common::challenge::Challenge as MD5Challenge;
 use lib_common::md5::MD5;
 use lib_common::message::{
     Challenge, ChallengeAnswer, ChallengeResult, ChallengeValue, EndOfGame, Message, PublicPlayer,
-    RoundSummary, Subscribe, SubscribeResult, Welcome,
+    RoundSummary,
 };
 use lib_common::recovery_secret::RS;
-use lib_common::send_message::buffer_to_object;
+use lib_common::send_message::{
+    buffer_to_object, on_leader_board_message, on_subscribe_result_message, on_welcome_message,
+    send_message,
+};
 
 struct InfoGame {
     name_player: String,
     players: Vec<PublicPlayer>,
 }
 
-pub fn send_message(mut stream: &TcpStream, message: Message) {
-    let serialized = serde_json::to_string(&message).expect("failed to serialized object");
-    let serialized_size = serialized.len() as u32;
-    println!("{}", serialized);
-    println!("{}", serialized_size);
-
-    stream
-        .write_all(&serialized_size.to_be_bytes())
-        .expect("failed to send message size");
-    stream
-        .write_all(&serialized.as_bytes())
-        .expect("failed to send message");
-}
-
+/// cette fonction permet de répondre au challenge du serveur
 fn on_challenge_message(
     stream: &TcpStream,
     challenge: Challenge,
@@ -58,6 +48,7 @@ fn on_challenge_message(
     }
 }
 
+/// permet de créer un challenge et de l'envoyer au serveur et de choisir le prochain joueur
 fn on_message_challenge_answer(
     stream: &TcpStream,
     challenge_answer: ChallengeAnswer,
@@ -72,6 +63,7 @@ fn on_message_challenge_answer(
     send_message(stream, message);
 }
 
+/// choisi le prochain joueur permettra dans un futur proche de choisir le joueur en multi thread
 fn choose_the_player(players: Vec<PublicPlayer>, name: String) -> String {
     for name_player in players {
         println!("{:?}", name_player.name);
@@ -82,31 +74,7 @@ fn choose_the_player(players: Vec<PublicPlayer>, name: String) -> String {
     name
 }
 
-pub fn on_welcome_message(stream: &TcpStream, welcome: Welcome, name: String) {
-    println!("welcome: {welcome:?}");
-    let message_subscribe = Subscribe { name: name.clone() };
-    send_message(stream, Message::Subscribe(message_subscribe));
-}
-
-pub fn on_subscribe_result_message(subscribe_result: SubscribeResult) -> u32 {
-    return match subscribe_result {
-        SubscribeResult::Ok => {
-            println!("subscribe_result: {subscribe_result:?}");
-            println!("Subscribe Success");
-            0
-        }
-        SubscribeResult::Err(ref _err) => {
-            println!("subscribe_result: {subscribe_result:?}");
-            println!("Not good");
-            1
-        }
-    };
-}
-
-pub fn on_leader_board_message(leader_board: &Vec<PublicPlayer>) {
-    println!("leader_board: {leader_board:?}");
-}
-
+/// permet de savoir si le joueur a gagné ou perdu
 fn on_round_summary(_stream: &TcpStream, round: RoundSummary) {
     let _name = round.challenge.to_string();
     let _test: &f64 = &0.0;
@@ -129,11 +97,13 @@ fn on_round_summary(_stream: &TcpStream, round: RoundSummary) {
     }
 }
 
+/// permet de signifier la fin de la partie
 fn finish_game(end: EndOfGame) {
     println!("finish");
     println!("endOfGame: {end:?}");
 }
 
+/// cette fonction permet de faire une boucle infini pour répondre a tout type de message jusqu'a la fin de la partie
 fn loop_message(mut _stream: &TcpStream, info_game: &mut InfoGame) {
     let mut buf = [0; 4];
     send_message(_stream, Message::Hello);
@@ -191,6 +161,7 @@ fn loop_message(mut _stream: &TcpStream, info_game: &mut InfoGame) {
     }
 }
 
+/// connection pour le client et le main pour lancer le client
 fn main() {
     let args: Vec<String> = env::args().collect();
     let ip_address = String::from(&args[2]);
