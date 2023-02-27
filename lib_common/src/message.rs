@@ -41,6 +41,7 @@ pub struct PublicPlayer {
     pub total_used_time: f64,
 }
 
+
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ChallengeValue {
     Unreachable,
@@ -49,23 +50,27 @@ pub enum ChallengeValue {
     Ok { used_time: f64, next_target: String },
 }
 
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ReportedChallengeResult {
     pub name: String,
     pub value: ChallengeValue,
 }
 
+//Structure de données pour le challenge RoundSummary
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RoundSummary {
     pub challenge: String,
     pub chain: Vec<ReportedChallengeResult>,
 }
 
+//Structure de données pour le challenge EndOfGame
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EndOfGame {
     pub leader_board: Vec<PublicPlayer>,
 }
 
+//Structure de données pour le challenge MD5HashCash
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MD5HashCashInput {
     // complexity in bits
@@ -82,6 +87,7 @@ pub struct MD5HashCashOutput {
     pub hashcode: String,
 }
 
+//Structure de données pour le challenge timeout
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChallengeTime {
     message: String,
@@ -101,6 +107,7 @@ pub struct RecoverSecretOutput {
     pub secret_sentence: String,
 }
 
+// Structure de données pour le challenge
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Challenge {
     MD5HashCash(MD5HashCashInput),
