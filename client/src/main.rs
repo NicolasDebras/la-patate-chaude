@@ -4,12 +4,11 @@ use std::net::TcpStream;
 use std::string::String;
 use lib_common::challenge::Challenge as MD5Challenge;
 use lib_common::message::{
-    Challenge, ChallengeAnswer, ChallengeResult, ChallengeValue, EndOfGame, MD5HashCashInput, MD5HashCashOutput, Message,
-    PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome, RecoverSecretOutput,
+    Challenge, ChallengeAnswer, ChallengeResult, ChallengeValue, EndOfGame, Message,
+    PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome,
 };
 use lib_common::md5::MD5;
 use lib_common::recovery_secret::RS;
-use serde::de::value;
 
 struct InfoGame {
     name_player: String,

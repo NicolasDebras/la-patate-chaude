@@ -279,6 +279,11 @@ considéré(s).
 * `serde` pour le transfert des données
 * Mise en place de tests unitaires et d'intégration
 
+## Commande 
+
+cargo run --bin  server md5-hash-cash
+cargo  run --bin  client [XX] localhost
+
 <!-- for PDF export using pandoc
 ---
 title: "Project Rust"
