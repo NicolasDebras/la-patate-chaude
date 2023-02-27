@@ -20,13 +20,13 @@ impl Challenge for RS {
         RS { input }
     }
 
-    /// Cette fonction prend en entrée un tableau de chaînes de caractères `tab` et renvoie une chaîne de caractères qui représente le secret caché dans les éléments de `tab`.
+    /// ``` Cette fonction prend en entrée un tableau de chaînes de caractères `tab` et renvoie une chaîne de caractères qui représente le secret caché dans les éléments de `tab`.
     ///
     /// # Arguments
     ///
     /// * `tab` - un vecteur de chaînes de caractères contenant des éléments cachant un secret.
     ///
-    /// ```
+    /// test```
     fn solve(&self) -> Self::Output {
         let tab = create_element_tuple(self.input.letters.clone(), self.input.tuple_sizes.clone());
         let res = recover_secret(tab);
@@ -42,7 +42,7 @@ impl Challenge for RS {
     }
 }
 
-/// Etant donné une liste de chaînes représentant des ordres partiels de caractères, cette fonction récupère
+///```text Etant donné une liste de chaînes représentant des ordres partiels de caractères, cette fonction récupère
 /// l'ordre complet des caractères. La liste d'entrée est un Vec<String> où chaque chaîne
 /// représente un ordre partiel des caractères. Par exemple, l'entrée ["aew", "vwy", "ywd"]
 /// représente l'ordre partiel 'a' < 'e' < 'w', 'v' < 'w' < 'y' et 'y' < 'w' < 'd'. Le résultat

@@ -20,6 +20,8 @@ cargo  run --bin  client name2 localhost
 
 #### Pour recover-secret
 
+le recover secret ne marche avec une complexité max de 15
+
 ```bash
 ./server -g  recover-secret -c 2 --monitor
 cargo  run --bin  client name localhost
