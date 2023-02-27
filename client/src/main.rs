@@ -5,9 +5,10 @@ use std::string::String;
 use lib_common::challenge::Challenge as MD5Challenge;
 use lib_common::message::{
     Challenge, ChallengeAnswer, ChallengeResult, ChallengeValue, EndOfGame, MD5HashCashInput, MD5HashCashOutput, Message,
-    PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome,
+    PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome, RecoverSecretOutput,
 };
 use lib_common::md5::MD5;
+use lib_common::recovery_secret::RS;
 
 struct InfoGame {
     name_player: String,
@@ -37,8 +38,11 @@ fn on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info: &mu
             print!("help");
             on_message_challenge_answer(stream, challenge_answer, game_info, name);
         }
-        Challenge::RecoverSecret() => {
-            print!("test")
+        Challenge::RecoverSecret(input ) => {
+            print!("run the Recovery Challenge");
+            let test = RS::new(input);
+            on_message_challenge_answer(stream, test.solve(), game_info, name)
+            
         }
         Challenge::ChallengeTimeout(input) => {
             println!("test= {input:?}");

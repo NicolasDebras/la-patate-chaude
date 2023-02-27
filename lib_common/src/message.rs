@@ -104,7 +104,7 @@ pub struct RecoverSecretOutput {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Challenge {
     MD5HashCash(MD5HashCashInput),
-    RecoverSecret(),
+    RecoverSecret(RecoverSecretInput),
     ChallengeTimeout(ChallengeTime),
 }
 
