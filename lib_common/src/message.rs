@@ -111,6 +111,7 @@ pub enum Challenge {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ChallengeAnswer {
     MD5HashCash(MD5HashCashOutput),
+    RecoverSecret(RecoverSecretOutput)
 }
 
 #[derive(Debug, Serialize, Deserialize)]

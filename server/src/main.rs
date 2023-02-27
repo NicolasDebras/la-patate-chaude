@@ -32,9 +32,13 @@ fn on_message_challenge_result(_stream: &TcpStream, challenge: &Challenge, chall
                     }
 
                 }
+
                 _ => {}
             }
             return on_message_round_summary(_stream, &concurrent, info_game, players_vec, difficulty);
+        }
+        ChallengeAnswer::RecoverSecret(md5_output) => {
+            // a finit 
         }
     }
     return players_vec;

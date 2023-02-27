@@ -9,6 +9,7 @@ use lib_common::message::{
 };
 use lib_common::md5::MD5;
 use lib_common::recovery_secret::RS;
+use serde::de::value;
 
 struct InfoGame {
     name_player: String,
@@ -41,8 +42,9 @@ fn on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info: &mu
         Challenge::RecoverSecret(input ) => {
             print!("run the Recovery Challenge");
             let test = RS::new(input);
-            on_message_challenge_answer(stream, test.solve(), game_info, name)
-            
+            let value = test.solve();
+            let challenge_answer = ChallengeAnswer::RecoverSecret(value);
+            on_message_challenge_answer(stream, challenge_answer, game_info, name);
         }
         Challenge::ChallengeTimeout(input) => {
             println!("test= {input:?}");
