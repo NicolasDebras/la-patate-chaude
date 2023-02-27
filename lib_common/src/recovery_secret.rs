@@ -22,11 +22,11 @@ impl Challenge for RS {
         let tab = create_element_tuple(self.input.letters.clone(), self.input.tuple_sizes.clone());
         let res = recover_secret(tab);
         return Self::Output {
-            secret_sentence: res
+            secret_sentence: res,
         };
     }
 
-    //a faire plus tard 
+    //a faire plus tard
     fn verify(&self, answer: &Self::Output) -> bool {
         println!("{}", answer.secret_sentence);
         return true;
@@ -50,9 +50,14 @@ fn recover_secret(tab: Vec<String>) -> String {
             // Si l'index est supérieur ou égal à 0 (
             if idx > 0 {
                 // Si le caractère précédent est dans `res` et que le caractère actuel n'y est pas.
-                if res.contains(&element_tuple.chars().nth(idx - 1).unwrap()) && res.contains(&car) == false {
+                if res.contains(&element_tuple.chars().nth(idx - 1).unwrap())
+                    && res.contains(&car) == false
+                {
                     // Récupération de l'index du caractère précédent dans `res`.
-                    let index = res.iter().position(|x| x == &element_tuple.chars().nth(idx - 1).unwrap()).unwrap();
+                    let index = res
+                        .iter()
+                        .position(|x| x == &element_tuple.chars().nth(idx - 1).unwrap())
+                        .unwrap();
                     // Insertion du caractère actuel après le caractère précédent dans `res`.
                     res.insert(index + 1, car);
                     println!("test 1 {:?}", res);
@@ -66,13 +71,19 @@ fn recover_secret(tab: Vec<String>) -> String {
                 // Si l'index + 1 est inférieur à la longueur de l'élément.
                 if idx + 1 < element_tuple.len() {
                     // Récupération des index du caractère suivant et du caractère actuel dans `res`.
-                    let a = res.iter().position(|x| x == &element_tuple.chars().nth(idx + 1).unwrap_or_default());
-                    let b = res.iter().position(|x| x == &element_tuple.chars().nth(idx).unwrap_or_default());
+                    let a = res
+                        .iter()
+                        .position(|x| x == &element_tuple.chars().nth(idx + 1).unwrap_or_default());
+                    let b = res
+                        .iter()
+                        .position(|x| x == &element_tuple.chars().nth(idx).unwrap_or_default());
                     // Si le caractère suivant est dans `res` et que son index est inférieur à celui du caractère actuel.
                     if res.contains(&element_tuple.chars().nth(idx + 1).unwrap()) && a < b {
                         // Récupération de l'index du caractère suivant dans `res`.
-                        let x = res.iter().position(|x| x == &element_tuple.chars().nth(idx + 1).unwrap());
-                        // Suppression du caractère suivant de `res`.     
+                        let x = res
+                            .iter()
+                            .position(|x| x == &element_tuple.chars().nth(idx + 1).unwrap());
+                        // Suppression du caractère suivant de `res`.
                         res.remove(x.unwrap_or_default());
                         //res.insert(x)
                         println!("test 3 {:?}", res);

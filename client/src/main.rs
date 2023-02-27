@@ -6,8 +6,8 @@ use std::string::String;
 use lib_common::challenge::Challenge as MD5Challenge;
 use lib_common::md5::MD5;
 use lib_common::message::{
-    Challenge, ChallengeAnswer, ChallengeResult, ChallengeValue, EndOfGame, Message,
-    PublicPlayer, RoundSummary, Subscribe, SubscribeResult, Welcome,
+    Challenge, ChallengeAnswer, ChallengeResult, ChallengeValue, EndOfGame, Message, PublicPlayer,
+    RoundSummary, Subscribe, SubscribeResult, Welcome,
 };
 use lib_common::recovery_secret::RS;
 use lib_common::send_message::buffer_to_object;
@@ -23,12 +23,20 @@ pub fn send_message(mut stream: &TcpStream, message: Message) {
     println!("{}", serialized);
     println!("{}", serialized_size);
 
-    stream.write_all(&serialized_size.to_be_bytes()).expect("failed to send message size");
-    stream.write_all(&serialized.as_bytes()).expect("failed to send message");
+    stream
+        .write_all(&serialized_size.to_be_bytes())
+        .expect("failed to send message size");
+    stream
+        .write_all(&serialized.as_bytes())
+        .expect("failed to send message");
 }
 
-
-fn on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info: &mut InfoGame, name: String) {
+fn on_challenge_message(
+    stream: &TcpStream,
+    challenge: Challenge,
+    game_info: &mut InfoGame,
+    name: String,
+) {
     match challenge {
         Challenge::MD5HashCash(input) => {
             println!("run the MD5 Challenge {input:?}");
@@ -50,8 +58,16 @@ fn on_challenge_message(stream: &TcpStream, challenge: Challenge, game_info: &mu
     }
 }
 
-fn on_message_challenge_answer(stream: &TcpStream, challenge_answer: ChallengeAnswer, game_info: &mut InfoGame, name: String) {
-    let challenge_result = ChallengeResult { answer: challenge_answer, next_target: choose_the_player(game_info.players.clone(), name) };
+fn on_message_challenge_answer(
+    stream: &TcpStream,
+    challenge_answer: ChallengeAnswer,
+    game_info: &mut InfoGame,
+    name: String,
+) {
+    let challenge_result = ChallengeResult {
+        answer: challenge_answer,
+        next_target: choose_the_player(game_info.players.clone(), name),
+    };
     let message = Message::ChallengeResult(challenge_result);
     send_message(stream, message);
 }
@@ -87,7 +103,6 @@ pub fn on_subscribe_result_message(subscribe_result: SubscribeResult) -> u32 {
     };
 }
 
-
 pub fn on_leader_board_message(leader_board: &Vec<PublicPlayer>) {
     println!("leader_board: {leader_board:?}");
 }
@@ -99,10 +114,16 @@ fn on_round_summary(_stream: &TcpStream, round: RoundSummary) {
         ChallengeValue::Timeout => println!("Timeout"),
         ChallengeValue::Unreachable => println!("Unreachable"),
 
-        ChallengeValue::Ok { used_time: _test, next_target: _name } => {
+        ChallengeValue::Ok {
+            used_time: _test,
+            next_target: _name,
+        } => {
             println!("Ok");
         }
-        ChallengeValue::BadResult { used_time: _test, next_target: _name } => {
+        ChallengeValue::BadResult {
+            used_time: _test,
+            next_target: _name,
+        } => {
             println!("Bad Result");
         }
     }
@@ -112,7 +133,6 @@ fn finish_game(end: EndOfGame) {
     println!("finish");
     println!("endOfGame: {end:?}");
 }
-
 
 fn loop_message(mut _stream: &TcpStream, info_game: &mut InfoGame) {
     let mut buf = [0; 4];
@@ -133,7 +153,9 @@ fn loop_message(mut _stream: &TcpStream, info_game: &mut InfoGame) {
         let record = buffer_to_object(&mut message_buf);
         match record {
             Message::Hello => {}
-            Message::Welcome(welcome) => on_welcome_message(_stream, welcome, info_game.name_player.clone()),
+            Message::Welcome(welcome) => {
+                on_welcome_message(_stream, welcome, info_game.name_player.clone())
+            }
             Message::Subscribe(_) => {}
             Message::SubscribeResult(subscribe_result) => {
                 let code_return = on_subscribe_result_message(subscribe_result);
@@ -169,7 +191,6 @@ fn loop_message(mut _stream: &TcpStream, info_game: &mut InfoGame) {
     }
 }
 
-
 fn main() {
     let args: Vec<String> = env::args().collect();
     let ip_address = String::from(&args[2]);
@@ -184,7 +205,10 @@ fn main() {
     let stream = TcpStream::connect(address);
     match stream {
         Ok(stream) => {
-            let mut info_game = InfoGame { name_player: name, players: vec![] };
+            let mut info_game = InfoGame {
+                name_player: name,
+                players: vec![],
+            };
             loop_message(&stream, &mut info_game);
         }
         Err(_err) => panic!("Cannot connect: {}", _err),

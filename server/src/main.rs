@@ -7,13 +7,22 @@ use rand::Rng;
 
 use lib_common::challenge::Challenge as MD5Challenge;
 use lib_common::md5::MD5;
-use lib_common::message::{ChallengeAnswer, ChallengeResult, ChallengeValue, EndOfGame, MD5HashCashInput, Message, PublicPlayer,
-                          ReportedChallengeResult, RoundSummary, Subscribe, SubscribeResult, Welcome};
 use lib_common::message::Challenge;
 use lib_common::message::Challenge::MD5HashCash;
+use lib_common::message::{
+    ChallengeAnswer, ChallengeResult, ChallengeValue, EndOfGame, MD5HashCashInput, Message,
+    PublicPlayer, ReportedChallengeResult, RoundSummary, Subscribe, SubscribeResult, Welcome,
+};
 use lib_common::send_message::buffer_to_object;
 
-fn on_message_challenge_result(_stream: &TcpStream, challenge: &Challenge, challenge_result: ChallengeResult, info_game: &String, players_vec: Vec<PublicPlayer>, difficulty: &u32) -> Vec<PublicPlayer> {
+fn on_message_challenge_result(
+    _stream: &TcpStream,
+    challenge: &Challenge,
+    challenge_result: ChallengeResult,
+    info_game: &String,
+    players_vec: Vec<PublicPlayer>,
+    difficulty: &u32,
+) -> Vec<PublicPlayer> {
     println!("{challenge_result:?}");
     let result_answer = challenge_result.answer;
     let concurrent = challenge_result.next_target;
@@ -24,13 +33,25 @@ fn on_message_challenge_result(_stream: &TcpStream, challenge: &Challenge, chall
                     let test = MD5::new(challenge.clone());
                     if test.verify(&md5_output) {
                         println!("yes");
-                        return on_message_round_summary(_stream, &concurrent, info_game, players_vec, difficulty);
+                        return on_message_round_summary(
+                            _stream,
+                            &concurrent,
+                            info_game,
+                            players_vec,
+                            difficulty,
+                        );
                     }
                 }
 
                 _ => {}
             }
-            return on_message_round_summary(_stream, &concurrent, info_game, players_vec, difficulty);
+            return on_message_round_summary(
+                _stream,
+                &concurrent,
+                info_game,
+                players_vec,
+                difficulty,
+            );
         }
         ChallengeAnswer::RecoverSecret(_md5_output) => {
             // a finir
@@ -39,8 +60,17 @@ fn on_message_challenge_result(_stream: &TcpStream, challenge: &Challenge, chall
     return players_vec;
 }
 
-fn on_message_round_summary(_stream: &TcpStream, concurrent: &String, info_game: &String, leader_board: Vec<PublicPlayer>, difficulty: &u32) -> Vec<PublicPlayer> {
-    let round_result = RoundSummary { challenge: info_game.clone().to_string(), chain: create_vec_reported_challenge(concurrent, leader_board.clone()) };
+fn on_message_round_summary(
+    _stream: &TcpStream,
+    concurrent: &String,
+    info_game: &String,
+    leader_board: Vec<PublicPlayer>,
+    difficulty: &u32,
+) -> Vec<PublicPlayer> {
+    let round_result = RoundSummary {
+        challenge: info_game.clone().to_string(),
+        chain: create_vec_reported_challenge(concurrent, leader_board.clone()),
+    };
     send_message(_stream, Message::RoundSummary(round_result));
     let leader_board_new = on_public_leader_board(_stream, leader_board.clone());
     on_challenge_message(_stream, info_game.clone().to_string(), difficulty);
@@ -48,10 +78,19 @@ fn on_message_round_summary(_stream: &TcpStream, concurrent: &String, info_game:
 }
 
 fn create_reported_challenge(player: PublicPlayer, concurrent: String) -> ReportedChallengeResult {
-    ReportedChallengeResult { name: player.name, value: ChallengeValue::Ok { used_time: 0.0, next_target: concurrent } }
+    ReportedChallengeResult {
+        name: player.name,
+        value: ChallengeValue::Ok {
+            used_time: 0.0,
+            next_target: concurrent,
+        },
+    }
 }
 
-fn create_vec_reported_challenge(concurrent: &String, leader_board: Vec<PublicPlayer>) -> Vec<ReportedChallengeResult> {
+fn create_vec_reported_challenge(
+    concurrent: &String,
+    leader_board: Vec<PublicPlayer>,
+) -> Vec<ReportedChallengeResult> {
     let mut result: Vec<ReportedChallengeResult> = Vec::new();
     for player in leader_board {
         result.push(create_reported_challenge(player, concurrent.to_string()));
@@ -141,7 +180,11 @@ fn on_hello_message(stream: &TcpStream) {
     send_message(stream, Message::Welcome(message_welcome));
 }
 
-fn on_subscribe_message(stream: &TcpStream, subscribe: Subscribe, mut players_vec: Vec<PublicPlayer>) -> Vec<PublicPlayer> {
+fn on_subscribe_message(
+    stream: &TcpStream,
+    subscribe: Subscribe,
+    mut players_vec: Vec<PublicPlayer>,
+) -> Vec<PublicPlayer> {
     println!("Subscribe = {subscribe:?}");
     let state_subscribe: SubscribeResult = SubscribeResult::Ok;
     send_message(stream, Message::SubscribeResult(state_subscribe));
@@ -179,13 +222,16 @@ fn on_public_leader_board(stream: &TcpStream, players_vec: Vec<PublicPlayer>) ->
     return players_vec;
 }
 
-
 pub fn send_message(mut stream: &TcpStream, message: Message) {
     let serialized = serde_json::to_string(&message).expect("failed to serialized object");
     let serialized_size = serialized.len() as u32;
 
-    stream.write_all(&serialized_size.to_be_bytes()).expect("failed to send message size");
-    stream.write_all(&serialized.as_bytes()).expect("failed to send message");
+    stream
+        .write_all(&serialized_size.to_be_bytes())
+        .expect("failed to send message size");
+    stream
+        .write_all(&serialized.as_bytes())
+        .expect("failed to send message");
 }
 
 fn main() {

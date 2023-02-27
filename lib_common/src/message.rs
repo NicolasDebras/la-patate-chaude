@@ -13,7 +13,6 @@ pub struct Subscribe {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Hello {}
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub enum SubscribeError {
     AlreadyRegistered,
@@ -88,7 +87,7 @@ pub struct ChallengeTime {
     message: String,
 }
 
-//Structures de données en entrée pour le recovery challenge  
+//Structures de données en entrée pour le recovery challenge
 #[derive(Debug, Serialize, Deserialize, Clone, PartialOrd, PartialEq)]
 pub struct RecoverSecretInput {
     pub word_count: usize,
@@ -96,12 +95,11 @@ pub struct RecoverSecretInput {
     pub tuple_sizes: Vec<usize>,
 }
 
-//Structures de données en sortie pour le recovery challenge  
+//Structures de données en sortie pour le recovery challenge
 #[derive(Debug, Serialize, Deserialize, Clone, PartialOrd, PartialEq)]
 pub struct RecoverSecretOutput {
     pub secret_sentence: String,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Challenge {
@@ -120,7 +118,6 @@ pub enum ChallengeAnswer {
 pub struct ChallengeTimeout {
     message: String,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PublicLeaderBoard {
@@ -143,5 +140,5 @@ pub enum Message {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Verification {
-    MD5HashCashInput
+    MD5HashCashInput,
 }

@@ -6,7 +6,7 @@ pub struct MD5 {
     pub input: MD5HashCashInput,
 }
 
-impl  Challenge for MD5 {
+impl Challenge for MD5 {
     type Input = MD5HashCashInput;
     type Output = MD5HashCashOutput;
 
@@ -21,7 +21,7 @@ impl  Challenge for MD5 {
     fn solve(&self) -> Self::Output {
         let mut answer = Self::Output {
             seed: 0,
-            hashcode: "".to_string()
+            hashcode: "".to_string(),
         };
 
         for seed in 0..=u64::MAX {
@@ -31,10 +31,7 @@ impl  Challenge for MD5 {
 
             let zeros = num_hashcode.leading_zeros();
             if zeros >= self.input.complexity {
-                answer = Self::Output {
-                    seed,
-                    hashcode
-                };
+                answer = Self::Output { seed, hashcode };
                 break;
             }
         }
@@ -52,6 +49,3 @@ fn count_bits_to_zero(hex_string: &str) -> u32 {
     let hex_value = u128::from_str_radix(hex_string, 16).unwrap();
     hex_value.leading_zeros()
 }
-
-
-
